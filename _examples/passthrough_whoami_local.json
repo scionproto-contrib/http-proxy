@@ -1,0 +1,48 @@
+{
+    "admin": {
+        "disabled": true,
+        "config": {
+            "persist": false
+        }
+    },
+    "apps": {
+        "scion": {},
+        "layer4": {
+            "servers": {
+                "scionlab": {
+                    "listen": [
+                        "scion/:443"
+                    ],
+                    "routes": [
+                        {
+                            "match": [
+                                {
+                                    "tls": {}
+                                }
+                            ],
+                            "handle": [
+                                {
+                                    "handler": "proxy",
+                                    "upstreams": [
+                                        {
+                                            "dial": [
+                                                "whoami.local:8079"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            }
+        }
+    },
+    "logging": {
+        "logs": {
+            "default": {
+                "level": "DEBUG"
+            }
+        }
+    }
+}

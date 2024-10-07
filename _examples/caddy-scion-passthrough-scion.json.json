@@ -1,0 +1,100 @@
+{
+    "admin": {
+        "disabled": true,
+        "config": {
+            "persist": false
+        }
+    },
+    "apps": {
+        "scion": {},
+        "layer4": {
+            "servers": {
+                "scionlab": {
+                    "listen": [
+                        "scion/:443"
+                    ],
+                    "routes": [
+                        {
+                            "match": [
+                                {
+                                    "tls": {
+                                        "sni": [
+                                            "scionlab.org",
+                                            "www.scionlab.org"
+                                        ]
+                                    }
+                                }
+                            ],
+                            "handle": [
+                                {
+                                    "handler": "proxy",
+                                    "upstreams": [
+                                        {
+                                            "dial": [
+                                                "scionlab.org:443"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "match": [
+                                {
+                                    "tls": {
+                                        "sni": [
+                                            "scion-architecture.net",
+                                            "www.scion-architecture.net"
+                                        ]
+                                    }
+                                }
+                            ],
+                            "handle": [
+                                {
+                                    "handler": "proxy",
+                                    "upstreams": [
+                                        {
+                                            "dial": [
+                                                "scion-architecture.net:443"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "match": [
+                                {
+                                    "tls": {
+                                        "sni": [
+                                            "netsec.ethz.ch"
+                                        ]
+                                    }
+                                }
+                            ],
+                            "handle": [
+                                {
+                                    "handler": "proxy",
+                                    "upstreams": [
+                                        {
+                                            "dial": [
+                                                "netsec.ethz.ch:443"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            }
+        }
+    },
+    "logging": {
+        "logs": {
+            "default": {
+                "level": "DEBUG"
+            }
+        }
+    }
+}

@@ -1,0 +1,93 @@
+{
+    "admin": {
+        "disabled": false,
+        "listen": "localhost:2020",
+        "config": {
+            "persist": false
+        }
+    },
+    "apps": {
+        "scion": {},
+        "http": {
+            "http_port": 7080,
+            "https_port": 7443,
+            "servers": {
+                "proxy": {
+                    "logs": {},
+                    "metrics": {},
+                    "listen": [
+                        ":7080",
+                        ":7443",
+                        "scion/:7080",
+                        "scion/:7443"
+                    ],
+                    "automatic_https": {
+                        "disable_redirects": true
+                    },
+                    "routes": [
+                        {
+                            "match": [
+                                {
+                                    "host": [
+                                        "localhost",
+                                        "whoami.local",
+                                        "scion.local",
+                                        "ip.local"
+                                    ]
+                                }
+                            ],
+                            "handle": [
+                                {
+                                    "handler": "detect_scion"
+                                },
+                                {
+                                    "handler": "reverse_proxy",
+                                    "upstreams": [
+                                        {
+                                            "dial": "localhost:8081"
+                                        }
+                                    ],
+                                    "handle_response": [
+                                        {
+                                            "routes": [
+                                                {
+                                                    "handle": [
+                                                        {
+                                                            "handler": "copy_response_headers"
+                                                        },
+                                                        {
+                                                            "handler": "advertise_scion",
+                                                            "Strict-SCION": "17-ffaa:1:1103,192.168.56.1:7443"
+                                                        },
+                                                        {
+                                                            "handler": "copy_response"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "Protocols": ["h1", "h2"]
+                }
+            }
+        },
+        "pki": {
+            "certificate_authorities": {
+                "local": {
+                    "install_trust": false
+                }
+            }
+        }
+    },
+    "logging": {
+        "logs": {
+            "default": {
+                "level": "DEBUG"
+            }
+        }
+    }
+}
