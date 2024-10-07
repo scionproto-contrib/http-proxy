@@ -1,0 +1,7 @@
+scion-caddy
+scion-caddy-dispatcherless
+!cmd/scion-caddy
+!cmd/scion-caddy-pprof
+.venv
+build/
+.vscode/

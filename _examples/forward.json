@@ -1,0 +1,76 @@
+{
+    "admin": {
+        "disabled": false,
+        "listen": "localhost:2019",
+        "config": {
+            "persist": false
+        }
+    },
+    "apps": {
+        "http": {
+            "http_port": 9080,
+            "https_port": 9443,
+            "servers": {
+                "forward": {
+                    "logs": {},
+                    "metrics": {},
+                    "listen": [
+                        ":9080",
+                        ":9443"
+                    ],
+                    "automatic_https": {
+                        "disable_redirects": true
+                    },
+                    "routes": [
+                        {
+                            "handle": [
+                                {
+                                    "handler": "forward_proxy",
+                                    "hosts": [
+                                        "localhost"
+                                    ],
+                                    "disable_purge_inactive_dialers": false
+                                }
+                            ]
+                        }
+                    ],
+                    "tls_connection_policies": [
+                        {}
+                    ]
+                }
+            }
+        },
+        "pki": {
+            "certificate_authorities": {
+                "local": {
+                    "install_trust": false
+                }
+            }
+        },
+        "tls": {
+            "certificates": {
+                "automate": [
+                    "localhost"
+                ]
+            },
+            "automation": {
+                "policies": [
+                    {
+                        "issuers": [
+                            {
+                                "module": "internal"
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+    },
+    "logging": {
+        "logs": {
+            "default": {
+                "level": "DEBUG"
+            }
+        }
+    }
+}
