@@ -2,10 +2,13 @@ HTTP Proxy development
 ======================
 
 This section provides some guidance on how to set up a development environment for the SCION HTTP Proxy. Other setups for development are also possible, but this is a simple way to get started.
-If you are not in the developer role you can simply configure access to any of the available SCION network as instructed in `Access and Host Configuration <https://github.com/netsys-lab/scion-education-network-documentation/blob/applications_access/docs/source/applications/access.rst>`_.
+If you are not a developer, you can simply configure access to any of the available SCION network as instructed in `Access and Host Configuration <https://docs.scion.org/projects/scion-applications/en/latest/applications/access.html>`_.
 
 Self-contained local setup
 --------------------------
+
+Prerequisites
+~~~~~~~~~~~~~
 
 * `Set up the Development Environment <https://docs.scion.org/en/latest/dev/setup.html>`_
 * `Run SCION locally <https://docs.scion.org/en/latest/dev/run.html>`_
@@ -40,13 +43,7 @@ On this example setup, these ASes have the following IPs:
         "1-ff00:0:112": "127.0.0.27"
     }
 
-``/etc/hosts``:
-
-.. code-block:: none
-
-    1-ff00:0:112,[127.0.0.1] scion.local
-
-The forward proxy (f) is running in AS 110 and the reverse proxy (r) with the whoami (w) service is running in AS 112:
+The forward proxy (f) is running in AS 111 and the reverse proxy (r) with the whoami (w) service is running in AS 112:
 
 .. code-block:: none
 
