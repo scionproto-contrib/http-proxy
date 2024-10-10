@@ -221,7 +221,13 @@ SCION production network
 ~~~~~~~~~~~~~~~~~~~~~~~~
     - https://ethz.ch
 
-Other domains are also accessible but currently they have to be manually configured in your ``/etc/scion/hosts`` file:
+Other domains are also accessible:
+    - https://www.ovgu.de
+    - https://dfw.source.kernel.org
+    - https://ucdb.br
+
+If you are using an in-network proxy and you are a regular user, you do not have to worry about the information below. 
+If you are running your own local proxy or you are the administator for the in-network proxy, the domains have to be manually configured in the ``/etc/scion/hosts`` file:
 
   .. code-block:: bash
 
