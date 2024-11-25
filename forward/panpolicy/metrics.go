@@ -22,7 +22,7 @@ import (
 	"github.com/caddyserver/caddy/v2/modules/caddyhttp"
 	"go.uber.org/zap"
 
-	"github.com/scionassociation/caddy-scion/forward/session"
+	"github.com/scionassociation/http-scion/forward/session"
 )
 
 type strategyType string

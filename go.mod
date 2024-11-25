@@ -1,4 +1,4 @@
-module github.com/scionassociation/caddy-scion
+module github.com/scionassociation/http-scion
 
 go 1.21.10
 

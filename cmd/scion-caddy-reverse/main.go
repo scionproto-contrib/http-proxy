@@ -19,7 +19,7 @@ import (
 	_ "github.com/caddyserver/caddy/v2/modules/standard"
 	_ "github.com/mholt/caddy-l4"
 
-	_ "github.com/scionassociation/caddy-scion/reverse"
+	_ "github.com/scionassociation/http-scion/reverse"
 )
 
 func main() {

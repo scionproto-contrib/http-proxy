@@ -29,7 +29,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 
-	"github.com/scionassociation/caddy-scion/forward/session"
+	"github.com/scionassociation/http-scion/forward/session"
 )
 
 func TestMetricsHandler(t *testing.T) {
