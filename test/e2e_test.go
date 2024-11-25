@@ -39,8 +39,8 @@ import (
 	"github.com/scionproto/scion/pkg/daemon"
 	"go.uber.org/zap"
 
-	forwardproxy "github.com/scionassociation/caddy-scion/forward"
-	_ "github.com/scionassociation/caddy-scion/reverse"
+	forwardproxy "github.com/scionassociation/http-scion/forward"
+	_ "github.com/scionassociation/http-scion/reverse"
 )
 
 var (

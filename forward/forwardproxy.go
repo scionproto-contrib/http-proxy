@@ -33,10 +33,10 @@ import (
 	"github.com/netsec-ethz/scion-apps/pkg/shttp"
 	"go.uber.org/zap"
 
-	"github.com/scionassociation/caddy-scion/forward/ioutils"
-	"github.com/scionassociation/caddy-scion/forward/panpolicy"
-	"github.com/scionassociation/caddy-scion/forward/resolver"
-	"github.com/scionassociation/caddy-scion/forward/session"
+	"github.com/scionassociation/http-scion/forward/ioutils"
+	"github.com/scionassociation/http-scion/forward/panpolicy"
+	"github.com/scionassociation/http-scion/forward/resolver"
+	"github.com/scionassociation/http-scion/forward/session"
 )
 
 const (
