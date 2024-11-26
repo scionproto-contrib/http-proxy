@@ -39,7 +39,7 @@ import (
 	"github.com/scionproto/scion/pkg/daemon"
 	"go.uber.org/zap"
 
-	forwardproxy "github.com/scionassociation/http-scion/forward"
+	caddyscion "github.com/scionassociation/http-scion/forward/caddy"
 	_ "github.com/scionassociation/http-scion/reverse"
 )
 
@@ -130,7 +130,7 @@ func TestMain(m *testing.M) {
 				Listen: []string{fmt.Sprintf(":%d", forwardProxyPort)},
 				Routes: caddyhttp.RouteList{
 					caddyhttp.Route{
-						HandlersRaw: []json.RawMessage{handlerJSON(&forwardproxy.Handler{})},
+						HandlersRaw: []json.RawMessage{handlerJSON(&caddyscion.Handler{})},
 					},
 				},
 				TLSConnPolicies: []*caddytls.ConnectionPolicy{

@@ -11,7 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package forwardproxy_test
+package caddy_test
 
 import (
 	"bufio"
@@ -39,7 +39,7 @@ import (
 	"go.uber.org/zap"
 	"golang.org/x/net/http2"
 
-	forwardproxy "github.com/scionassociation/http-scion/forward"
+	caddyscion "github.com/scionassociation/http-scion/forward/caddy"
 )
 
 /*
@@ -436,7 +436,7 @@ type caddyTestServer struct {
 	tls  bool
 
 	root         string // expected to have index.html and image.png
-	proxyHandler *forwardproxy.Handler
+	proxyHandler *caddyscion.Handler
 	contents     map[string][]byte
 }
 
@@ -526,13 +526,13 @@ func TestMain(m *testing.M) {
 		addr:         "127.0.42.1:8200",
 		root:         "./test/forwardproxy",
 		tls:          true,
-		proxyHandler: &forwardproxy.Handler{},
+		proxyHandler: &caddyscion.Handler{},
 	}
 
 	caddyInsecureForwardProxy = caddyTestServer{
 		addr:         "127.0.42.1:8201",
 		root:         "./test/forwardproxy",
-		proxyHandler: &forwardproxy.Handler{},
+		proxyHandler: &caddyscion.Handler{},
 	}
 
 	// Initialize test target servers
