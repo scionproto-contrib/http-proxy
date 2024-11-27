@@ -23,6 +23,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/scionassociation/http-scion/forward"
+	"github.com/scionassociation/http-scion/forward/utils"
 )
 
 const (
@@ -130,26 +131,39 @@ func (h *Handler) Cleanup() error {
 
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddyhttp.Handler) error {
 	if h.Hosts.Match(r) && r.Method != http.MethodConnect {
-		// pass non-CONNECT requests to hostname to the proxy API
 		log := h.logger.With(zap.String("path", r.URL.Path))
+		var err error
 		switch r.URL.Path {
 		case APIPolicyPath:
 			log.Debug("Setting policy.")
-			return h.coreProxy.HandlePolicyPath(w, r)
+			err = h.coreProxy.HandlePolicyPath(w, r)
 		case APIPathUsage:
 			log.Debug("Getting path metrics.")
-			return h.coreProxy.HandlePathUsage(w, r)
+			err = h.coreProxy.HandlePathUsage(w, r)
 		case APIResolveURL:
 			log.Debug("Resolve URL.")
-			return h.coreProxy.HandleResolveURL(w, r)
+			err = h.coreProxy.HandleResolveURL(w, r)
 		case APIResolveHost:
 			log.Debug("Resolve host.")
-			return h.coreProxy.HandleResolveHost(w, r)
+			err = h.coreProxy.HandleResolveHost(w, r)
 		default:
-			// serve next caddy handler
 			log.Debug("Ignoring non matching API path.")
 			return next.ServeHTTP(w, r)
 		}
+		if err != nil {
+			return caddyError(err)
+		}
+		return nil
 	}
-	return h.coreProxy.HandleTunnelRequest(w, r)
+	if err := h.coreProxy.HandleTunnelRequest(w, r); err != nil {
+		return caddyError(err)
+	}
+	return nil
+}
+
+func caddyError(err error) error {
+	if he, ok := err.(*utils.HandlerError); ok {
+		return caddyhttp.Error(he.StatusCode, he.Err)
+	}
+	return caddyhttp.Error(http.StatusInternalServerError, err)
 }
