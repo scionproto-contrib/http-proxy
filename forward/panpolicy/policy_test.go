@@ -23,7 +23,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/caddyserver/caddy/v2/modules/caddyhttp"
 	"github.com/netsec-ethz/scion-apps/pkg/pan"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -137,8 +136,7 @@ func TestEnsurePolicyOnDialer(t *testing.T) {
 	require.NoError(t, err, "error creating request")
 
 	rr := httptest.NewRecorder()
-	handler := caddyhttp.HandlerFunc(m.ServeHTTP)
-	err = handler.ServeHTTP(rr, req)
+	err = m.ServeHTTP(rr, req)
 	require.NoError(t, err, "error serving HTTP request")
 
 	expectedCode := http.StatusOK

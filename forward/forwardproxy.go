@@ -28,7 +28,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/caddyserver/caddy/v2/modules/caddyhttp"
 	"github.com/netsec-ethz/scion-apps/pkg/shttp"
 	"go.uber.org/zap"
 
@@ -36,6 +35,7 @@ import (
 	"github.com/scionassociation/http-scion/forward/panpolicy"
 	"github.com/scionassociation/http-scion/forward/resolver"
 	"github.com/scionassociation/http-scion/forward/session"
+	"github.com/scionassociation/http-scion/forward/utils"
 )
 
 // ResolveHandler defines an interface for handling HTTP requests related to
@@ -116,13 +116,13 @@ func (cp *CoreProxy) HandleTunnelRequest(w http.ResponseWriter, r *http.Request)
 	// get session
 	err := cp.parseCookieFromProxyAuth(w, r)
 	if err != nil {
-		return caddyhttp.Error(http.StatusInternalServerError, err)
+		return utils.NewHandlerError(http.StatusInternalServerError, err)
 	}
 
 	// parse session date from cookie e.g. policy
 	sessionData, err := session.GetSessionData(cp.logger, r)
 	if err != nil {
-		return caddyhttp.Error(http.StatusInternalServerError, err)
+		return utils.NewHandlerError(http.StatusInternalServerError, err)
 	}
 	cp.logger.Debug("Having session.", zap.String("session-id", sessionData.ID))
 
@@ -137,7 +137,7 @@ func (cp *CoreProxy) HandleTunnelRequest(w http.ResponseWriter, r *http.Request)
 	useScion := !addr.IsZero()
 	dialer, err := cp.policyManager.GetDialer(sessionData, useScion)
 	if err != nil {
-		return err
+		return utils.NewHandlerError(http.StatusInternalServerError, err)
 	}
 
 	if r.Method == http.MethodConnect {
@@ -156,7 +156,7 @@ func (cp *CoreProxy) parseCookieFromProxyAuth(w http.ResponseWriter, r *http.Req
 		cp.logger.Warn("Invalid or not provided proxy authorization header.", zap.Error(err))
 
 		w.Header().Set("Proxy-Authenticate", "Basic realm=caddy-scion-forward-proxy") // realm is a garbage value
-		return caddyhttp.Error(http.StatusProxyAuthRequired, fmt.Errorf("required to pass valid proxy authorization header"))
+		return utils.NewHandlerError(http.StatusProxyAuthRequired, fmt.Errorf("required to pass valid proxy authorization header"))
 	}
 
 	cp.logger.Debug("Proxy authorization header provided.")
@@ -207,7 +207,7 @@ func parseBasicAuth(auth string) (username, password string, err error) {
 func (cp *CoreProxy) tunnelRequest(w http.ResponseWriter, r *http.Request, dialer panpolicy.PANDialer) error {
 	if r.ProtoMajor == 2 || r.ProtoMajor == 3 {
 		if len(r.URL.Scheme) > 0 || len(r.URL.Path) > 0 {
-			return caddyhttp.Error(http.StatusBadRequest,
+			return utils.NewHandlerError(http.StatusBadRequest,
 				fmt.Errorf("CONNECT request has :scheme and/or :path pseudo-header fields"))
 		}
 	}
@@ -219,14 +219,17 @@ func (cp *CoreProxy) tunnelRequest(w http.ResponseWriter, r *http.Request, diale
 
 	targetConn, err := dialer.DialContext(r.Context(), "tcp", hostPort)
 	if err != nil {
-		return caddyhttp.Error(http.StatusServiceUnavailable, fmt.Errorf("failed to setup tunnel: %v", err))
+		return utils.NewHandlerError(http.StatusServiceUnavailable, fmt.Errorf("failed to setup tunnel: %v", err))
 	}
 	defer targetConn.Close()
 	cp.logger.Debug("Set up tunnel.", zap.String("remote-address", targetConn.RemoteAddr().String()))
 
 	switch r.ProtoMajor {
 	case 1: // http1: hijack the whole flow
-		return cp.serveHijack(w, targetConn)
+		if err := cp.serveHijack(w, targetConn); err != nil {
+			return utils.NewHandlerError(http.StatusInternalServerError, err)
+		}
+		return nil
 	case 2: // http2: keep reading from "request" and writing into same response
 		fallthrough
 	case 3:
@@ -234,12 +237,15 @@ func (cp *CoreProxy) tunnelRequest(w http.ResponseWriter, r *http.Request, diale
 		w.WriteHeader(http.StatusOK)
 		err := http.NewResponseController(w).Flush()
 		if err != nil {
-			return caddyhttp.Error(http.StatusInternalServerError,
+			return utils.NewHandlerError(http.StatusInternalServerError,
 				fmt.Errorf("ResponseWriter flush error: %v", err))
 		}
-		return ioutils.DualStream(targetConn, r.Body, w)
+		if err := ioutils.DualStream(targetConn, r.Body, w); err != nil {
+			return utils.NewHandlerError(http.StatusInternalServerError, err)
+		}
+		return nil
 	default:
-		return caddyhttp.Error(http.StatusHTTPVersionNotSupported,
+		return utils.NewHandlerError(http.StatusHTTPVersionNotSupported,
 			fmt.Errorf("unsupported HTTP major version: %d", r.ProtoMajor))
 	}
 }
@@ -249,7 +255,7 @@ func (cp *CoreProxy) tunnelRequest(w http.ResponseWriter, r *http.Request, diale
 func (cp *CoreProxy) serveHijack(w http.ResponseWriter, targetConn net.Conn) error {
 	clientConn, bufReader, err := http.NewResponseController(w).Hijack()
 	if err != nil {
-		return caddyhttp.Error(http.StatusInternalServerError,
+		return utils.NewHandlerError(http.StatusInternalServerError,
 			fmt.Errorf("hijack failed: %v", err))
 	}
 	defer clientConn.Close()
@@ -259,7 +265,7 @@ func (cp *CoreProxy) serveHijack(w http.ResponseWriter, targetConn net.Conn) err
 		if n := bufReader.Reader.Buffered(); n > 0 {
 			rbuf, err := bufReader.Reader.Peek(n)
 			if err != nil {
-				return caddyhttp.Error(http.StatusBadGateway, err)
+				return utils.NewHandlerError(http.StatusBadGateway, err)
 			}
 			_, _ = targetConn.Write(rbuf)
 
@@ -279,12 +285,12 @@ func (cp *CoreProxy) serveHijack(w http.ResponseWriter, targetConn net.Conn) err
 	buf := bufio.NewWriter(clientConn)
 	err = res.Write(buf)
 	if err != nil {
-		return caddyhttp.Error(http.StatusInternalServerError,
+		return utils.NewHandlerError(http.StatusInternalServerError,
 			fmt.Errorf("failed to write response: %v", err))
 	}
 	err = buf.Flush()
 	if err != nil {
-		return caddyhttp.Error(http.StatusInternalServerError,
+		return utils.NewHandlerError(http.StatusInternalServerError,
 			fmt.Errorf("failed to send response to client: %v", err))
 	}
 
@@ -320,7 +326,7 @@ func (cp *CoreProxy) forwardRequest(w http.ResponseWriter, r *http.Request, dial
 		// but we still need to copy the r.Body, even if it's empty
 		rBodyBuf, err := io.ReadAll(r.Body)
 		if err != nil {
-			return caddyhttp.Error(http.StatusBadRequest,
+			return utils.NewHandlerError(http.StatusBadRequest,
 				fmt.Errorf("failed to read request body: %v", err))
 		}
 		r.GetBody = func() (io.ReadCloser, error) {
@@ -335,14 +341,14 @@ func (cp *CoreProxy) forwardRequest(w http.ResponseWriter, r *http.Request, dial
 
 	resp, err := transport.RoundTrip(r)
 	if err != nil {
-		if _, ok := err.(caddyhttp.HandlerError); ok {
-			return err
-		}
-		return caddyhttp.Error(http.StatusBadGateway, fmt.Errorf("failed to read response: %v", err))
+		return utils.NewHandlerError(http.StatusBadGateway, fmt.Errorf("failed to read response: %v", err))
 	}
 	defer resp.Body.Close()
 
-	return forwardResponse(w, resp)
+	if err := forwardResponse(w, resp); err != nil {
+		return utils.NewHandlerError(http.StatusInternalServerError, err)
+	}
+	return nil
 }
 
 func removeForwardProxyCookie(r *http.Request) {

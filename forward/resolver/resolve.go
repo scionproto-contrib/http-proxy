@@ -23,8 +23,8 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/caddyserver/caddy/v2/modules/caddyhttp"
 	"github.com/netsec-ethz/scion-apps/pkg/pan"
+	"github.com/scionassociation/http-scion/forward/utils"
 	"go.uber.org/zap"
 )
 
@@ -45,13 +45,13 @@ func NewScionHostResolver(logger *zap.Logger, resolveTimeout time.Duration) *Sci
 
 func (s ScionHostResolver) HandleRedirectBackOrError(w http.ResponseWriter, r *http.Request) error {
 	if r.Method != http.MethodGet {
-		return caddyhttp.Error(http.StatusMethodNotAllowed, errors.New("HTTP GET allowed only"))
+		return utils.NewHandlerError(http.StatusMethodNotAllowed, errors.New("HTTP GET allowed only"))
 	}
 
 	q := r.URL.Query()
 	urls, ok := q["url"]
 	if !ok || len(urls) != 1 {
-		return caddyhttp.Error(http.StatusBadRequest, errors.New("URL parameter 'url' must contain exaclty one value"))
+		return utils.NewHandlerError(http.StatusBadRequest, errors.New("URL parameter 'url' must contain exaclty one value"))
 	}
 	l := s.logger.With(zap.String("url", urls[0]))
 
@@ -59,14 +59,14 @@ func (s ScionHostResolver) HandleRedirectBackOrError(w http.ResponseWriter, r *h
 	url, err := url.Parse(urls[0])
 	if err != nil {
 		l.With(zap.Error(err)).Error("Failed to parse URL.")
-		return caddyhttp.Error(http.StatusBadRequest, err)
+		return utils.NewHandlerError(http.StatusBadRequest, err)
 	}
 
 	l.Debug("Resolving URL.")
 	addr, err := s.resolver.Resolve(r.Context(), url.Host)
 	if err != nil || addr.IsZero() {
 		l.Info("Failed to resolve URL.")
-		return caddyhttp.Error(http.StatusServiceUnavailable, err)
+		return utils.NewHandlerError(http.StatusServiceUnavailable, err)
 	}
 
 	w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -81,18 +81,18 @@ func (s ScionHostResolver) HandleRedirectBackOrError(w http.ResponseWriter, r *h
 // If the PAN lib cannot resolve the host, it sends back an empty response.
 func (s ScionHostResolver) HandleHostResolutionRequest(w http.ResponseWriter, r *http.Request) error {
 	if r.Method != http.MethodGet {
-		return caddyhttp.Error(http.StatusMethodNotAllowed, errors.New("HTTP GET allowed only"))
+		return utils.NewHandlerError(http.StatusMethodNotAllowed, errors.New("HTTP GET allowed only"))
 	}
 
 	q := r.URL.Query()
 	hosts, ok := q["host"]
 	if !ok || len(hosts) > 1 {
-		return caddyhttp.Error(http.StatusBadRequest, errors.New("URL parameter 'host' must contain exaclty one value"))
+		return utils.NewHandlerError(http.StatusBadRequest, errors.New("URL parameter 'host' must contain exaclty one value"))
 	}
 
 	addr, err := s.resolver.Resolve(r.Context(), hosts[0])
 	if err != nil {
-		return caddyhttp.Error(http.StatusInternalServerError, err)
+		return utils.NewHandlerError(http.StatusInternalServerError, err)
 	} else if addr.IsZero() {
 		// send back empty response
 		w.WriteHeader(http.StatusOK)
