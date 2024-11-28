@@ -11,8 +11,8 @@ Prerequisites
 
 Build for Linux and install
 ---------------------------
-A debian package will be made available soon.
-In the meantime, you can download the `latest realease <https://github.com/scionproto-contrib/http-proxy/releases>`_ available or build the plugin from source as follows:
+A Debian package will be made available soon.
+In the meantime, you can download the `latest release <https://github.com/scionproto-contrib/http-proxy/releases>`_ available or build the plugin from source as follows:
 
 - Download the source code from the `SCION HTTP Proxy repository <https://github.com/scionproto-contrib/http-proxy>`_.
 - Build the plugin by running the following command in the root directory of the repository:
@@ -59,7 +59,7 @@ Then, you can follow the steps below to install the plugin:
 
 Build for MacOS and install
 ---------------------------
-At the moment, you can download the `latest realease <https://github.com/scionproto-contrib/http-proxy/releases>`_ available or build the plugin from source as follows:
+At the moment, you can download the `latest release <https://github.com/scionproto-contrib/http-proxy/releases>`_ available or build the plugin from source as follows:
 
 - Download the source code from the `SCION HTTP Proxy repository <https://github.com/scionproto-contrib/http-proxy>`_.
 - Build the plugin by running the following command in the root directory of the repository:
@@ -109,7 +109,7 @@ Then, you can follow the steps below to install the plugin:
 Build for Windows and install
 -----------------------------
 
-At the moment, you can download the `latest realease <https://github.com/scionproto-contrib/http-proxy/releases>`_ available or build the plugin from source as follows:
+At the moment, you can download the `latest release <https://github.com/scionproto-contrib/http-proxy/releases>`_ available or build the plugin from source as follows:
 
 - Download the source code from the `SCION HTTP Proxy repository <https://github.com/scionproto-contrib/http-proxy>`_.
 - Build the plugin by running the following command in the root directory of the repository:
@@ -246,7 +246,7 @@ Other domains are also accessible:
 
 If you are a regular user using an in-network proxy, you do not have to worry about the information below.
 
-If you are running your own local proxy or you are the administator for the in-network proxy, the domains have to be manually configured in the ``/etc/scion/hosts`` file:
+If you are running your own local proxy or you are the administrator for the in-network proxy, the domains have to be manually configured in the ``/etc/scion/hosts`` file:
 
   .. code-block:: bash
 

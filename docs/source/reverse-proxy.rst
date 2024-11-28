@@ -11,8 +11,8 @@ Prerequisites
 
 Installation
 ------------
-A debian package will be made available soon.
-In the meantime, you can download the `latest realease <https://github.com/scionproto-contrib/http-proxy/releases>`_ available or build the plugin from source as follows
+A Debian package will be made available soon.
+In the meantime, you can download the `latest release <https://github.com/scionproto-contrib/http-proxy/releases>`_ available or build the plugin from source as follows
 
 - Download the source code from the `SCION HTTP Proxy repository <https://github.com/scionproto-contrib/http-proxy>`_.
 - Build the plugin by running the following command in the root directory of the repository:
@@ -60,7 +60,7 @@ Then, you can follow the steps below to install the plugin:
 Build for Windows and install
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-At the moment, you can download the `latest realease <https://github.com/scionproto-contrib/http-proxy/releases>`_ available or build the plugin from source as follows:
+At the moment, you can download the `latest release <https://github.com/scionproto-contrib/http-proxy/releases>`_ available or build the plugin from source as follows:
 
 - Download the source code from the `SCION HTTP Proxy repository <https://github.com/scionproto-contrib/http-proxy>`_.
 - Build the plugin by running the following command in the root directory of the repository:
