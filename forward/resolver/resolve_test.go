@@ -15,15 +15,14 @@ package resolver
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
-	"github.com/caddyserver/caddy/v2/modules/caddyhttp"
 	"github.com/netsec-ethz/scion-apps/pkg/pan"
+	"github.com/scionproto-contrib/http-proxy/forward/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -77,12 +76,13 @@ func TestHandleHostResolutionRequest(t *testing.T) {
 			require.NoError(t, err)
 
 			rr := httptest.NewRecorder()
-			handler := caddyhttp.HandlerFunc(hostResolver.HandleHostResolutionRequest)
-			err = handler.ServeHTTP(rr, req)
+			err = hostResolver.HandleHostResolutionRequest(rr, req)
 
 			var status int
 			if err != nil {
-				status, _ = unboxCaddyHttpErr(err)
+				require.IsType(t, &utils.HandlerError{}, err)
+				he := err.(*utils.HandlerError)
+				status = he.StatusCode
 			} else {
 				status = rr.Code
 			}
@@ -130,12 +130,13 @@ func TestHandleRedirectBackOrError(t *testing.T) {
 			require.NoError(t, err)
 
 			rr := httptest.NewRecorder()
-			handler := caddyhttp.HandlerFunc(hostResolver.HandleRedirectBackOrError)
-			err = handler.ServeHTTP(rr, req)
+			err = hostResolver.HandleRedirectBackOrError(rr, req)
 
 			var status int
 			if err != nil {
-				status, _ = unboxCaddyHttpErr(err)
+				require.IsType(t, &utils.HandlerError{}, err)
+				he := err.(*utils.HandlerError)
+				status = he.StatusCode
 			} else {
 				status = rr.Code
 			}
@@ -153,20 +154,4 @@ func mustParse(addr string) pan.UDPAddr {
 		panic(fmt.Sprintf("test input must parse %s", err))
 	}
 	return a
-}
-
-func unboxCaddyHttpErr(err error) (status int, msg string) {
-	var handlerErr caddyhttp.HandlerError
-	if errors.As(err, &handlerErr) {
-		status = handlerErr.StatusCode
-		if handlerErr.Err == nil {
-			msg = err.Error()
-		} else {
-			msg = handlerErr.Err.Error()
-		}
-		return
-	}
-	status = http.StatusInternalServerError
-	msg = err.Error()
-	return
 }

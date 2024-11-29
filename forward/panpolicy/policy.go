@@ -27,12 +27,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/caddyserver/caddy/v2/modules/caddyhttp"
 	"github.com/netsec-ethz/scion-apps/pkg/pan"
 	"github.com/scionproto/scion/pkg/addr"
 	"go.uber.org/zap"
 
-	"github.com/scionassociation/caddy-scion/forward/session"
+	"github.com/scionproto-contrib/http-proxy/forward/session"
+	"github.com/scionproto-contrib/http-proxy/forward/utils"
 )
 
 type DialerManager interface {
@@ -120,24 +120,24 @@ func (h *policyManager) Stop() error {
 
 func (h *policyManager) ServeHTTP(w http.ResponseWriter, r *http.Request) error {
 	if r.Method != http.MethodPut {
-		return caddyhttp.Error(http.StatusMethodNotAllowed, errors.New("HTTP PUT allowed only"))
+		return utils.NewHandlerError(http.StatusMethodNotAllowed, errors.New("HTTP PUT allowed only"))
 	}
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		return caddyhttp.Error(http.StatusBadRequest, err)
+		return utils.NewHandlerError(http.StatusBadRequest, err)
 	}
 
 	log := h.logger.With(zap.String("policy", string(body)))
 
 	policy, err := parsePolicy(body)
 	if err != nil {
-		return caddyhttp.Error(http.StatusBadRequest, err)
+		return utils.NewHandlerError(http.StatusBadRequest, err)
 	}
 
 	err = h.persistPolicy(w, r, body, policy)
 	if err != nil {
-		return caddyhttp.Error(http.StatusInternalServerError, err)
+		return utils.NewHandlerError(http.StatusInternalServerError, err)
 	}
 	log.Debug("Policy persisted.")
 

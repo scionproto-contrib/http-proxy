@@ -4,63 +4,46 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//   http://www.apache.org/licenses/LICENSE-2.0
+//	http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
-package reverseproxy
+package reverse
 
 import (
 	"net/http"
 
-	"github.com/caddyserver/caddy/v2"
-	"github.com/caddyserver/caddy/v2/modules/caddyhttp"
 	"github.com/scionproto/scion/pkg/snet"
 	"go.uber.org/zap"
 )
 
-var (
-	// Interface guards
-	_ caddyhttp.MiddlewareHandler = (*SCIONAdvertiserHandler)(nil)
-	_ caddy.Provisioner           = (*SCIONAdvertiserHandler)(nil)
-)
-
-func init() {
-	caddy.RegisterModule(SCIONAdvertiserHandler{})
+// Advertiser is a middleware that adds the Strict-SCION header to HTTP responses
+// if the request is not from a SCION-enabled address.
+type Advertiser struct {
+	StrictScion string
+	logger      *zap.Logger
 }
 
-type SCIONAdvertiserHandler struct {
-	StrictScion string `json:"Strict-SCION,omitempty"`
-
-	logger *zap.Logger
-}
-
-// CaddyModule returns the Caddy module information.
-func (SCIONAdvertiserHandler) CaddyModule() caddy.ModuleInfo {
-	return caddy.ModuleInfo{
-		ID:  "http.handlers.advertise_scion",
-		New: func() caddy.Module { return new(SCIONAdvertiserHandler) },
+func NewAdvertiser(logger *zap.Logger, strictScion string) *Advertiser {
+	return &Advertiser{
+		StrictScion: strictScion,
+		logger:      logger,
 	}
 }
 
-func (s *SCIONAdvertiserHandler) Provision(ctx caddy.Context) error {
-	s.logger = ctx.Logger()
-	return nil
-}
-
-// ServeHTTP implements caddyhttp.MiddlewareHandler.
-func (s SCIONAdvertiserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddyhttp.Handler) error {
-	s.logger.Debug("Checking for scion traffic.",
-		zap.String("remote-address", r.RemoteAddr))
+func (a *Advertiser) ServeHTTP(w http.ResponseWriter, r *http.Request) error {
+	if a.logger != nil {
+		a.logger.Debug("Checking for SCION traffic.",
+			zap.String("remote-address", r.RemoteAddr))
+	}
 
 	if _, err := snet.ParseUDPAddr(r.RemoteAddr); err != nil {
 		if w.Header().Get("Strict-SCION") == "" {
-			w.Header().Set("Strict-SCION", s.StrictScion)
+			w.Header().Set("Strict-SCION", a.StrictScion)
 		}
 	}
-	return next.ServeHTTP(w, r)
+	return nil
 }

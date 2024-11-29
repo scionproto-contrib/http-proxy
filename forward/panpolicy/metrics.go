@@ -19,10 +19,10 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/caddyserver/caddy/v2/modules/caddyhttp"
 	"go.uber.org/zap"
 
-	"github.com/scionassociation/caddy-scion/forward/session"
+	"github.com/scionproto-contrib/http-proxy/forward/session"
+	"github.com/scionproto-contrib/http-proxy/forward/utils"
 )
 
 type strategyType string
@@ -68,17 +68,17 @@ func (p *pathMetrics) MarshalJSON() ([]byte, error) {
 func (p *MetricsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) error {
 	data, err := p.getMetrics(r)
 	if err != nil {
-		return caddyhttp.Error(http.StatusInternalServerError, err)
+		return utils.NewHandlerError(http.StatusInternalServerError, err)
 	}
 
 	j, err := json.Marshal(data)
 	if err != nil {
-		return caddyhttp.Error(http.StatusInternalServerError, err)
+		return utils.NewHandlerError(http.StatusInternalServerError, err)
 	}
 
 	_, err = w.Write(j)
 	if err != nil {
-		return caddyhttp.Error(http.StatusInternalServerError, err)
+		return utils.NewHandlerError(http.StatusInternalServerError, err)
 	}
 
 	return nil
