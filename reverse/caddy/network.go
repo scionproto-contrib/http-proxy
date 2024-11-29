@@ -23,7 +23,7 @@ import (
 	"github.com/netsec-ethz/scion-apps/pkg/pan"
 	"github.com/quic-go/quic-go"
 
-	"github.com/scionassociation/http-scion/reverse"
+	"github.com/scionassociation/http-proxy/reverse"
 )
 
 var (

@@ -31,8 +31,8 @@ import (
 	"github.com/scionproto/scion/pkg/addr"
 	"go.uber.org/zap"
 
-	"github.com/scionassociation/http-scion/forward/session"
-	"github.com/scionassociation/http-scion/forward/utils"
+	"github.com/scionassociation/http-proxy/forward/session"
+	"github.com/scionassociation/http-proxy/forward/utils"
 )
 
 type DialerManager interface {

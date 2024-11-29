@@ -28,7 +28,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 
-	"github.com/scionassociation/http-scion/forward/session"
+	"github.com/scionassociation/http-proxy/forward/session"
 )
 
 type policyType int

@@ -19,7 +19,7 @@ import (
 
 	"github.com/caddyserver/caddy/v2"
 	"github.com/caddyserver/caddy/v2/modules/caddyhttp"
-	"github.com/scionassociation/http-scion/reverse"
+	"github.com/scionassociation/http-proxy/reverse"
 	"go.uber.org/zap"
 )
 

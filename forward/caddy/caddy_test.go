@@ -39,7 +39,7 @@ import (
 	"go.uber.org/zap"
 	"golang.org/x/net/http2"
 
-	caddyscion "github.com/scionassociation/http-scion/forward/caddy"
+	caddyscion "github.com/scionassociation/http-proxy/forward/caddy"
 )
 
 /*

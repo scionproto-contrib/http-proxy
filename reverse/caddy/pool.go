@@ -17,7 +17,7 @@ package caddy
 import (
 	"github.com/caddyserver/caddy/v2"
 
-	"github.com/scionassociation/http-scion/reverse"
+	"github.com/scionassociation/http-proxy/reverse"
 )
 
 // UsagePool is a type safe caddy.UsagePool

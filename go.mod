@@ -1,4 +1,4 @@
-module github.com/scionassociation/http-scion
+module github.com/scionassociation/http-proxy
 
 go 1.21.10
 
