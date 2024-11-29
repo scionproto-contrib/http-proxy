@@ -22,8 +22,8 @@ import (
 	"github.com/caddyserver/caddy/v2/modules/caddyhttp"
 	"go.uber.org/zap"
 
-	"github.com/scionassociation/http-scion/forward"
-	"github.com/scionassociation/http-scion/forward/utils"
+	"github.com/scionassociation/http-proxy/forward"
+	"github.com/scionassociation/http-proxy/forward/utils"
 )
 
 const (
