@@ -24,7 +24,7 @@ import (
 	"time"
 
 	"github.com/netsec-ethz/scion-apps/pkg/pan"
-	"github.com/scionassociation/http-proxy/forward/utils"
+	"github.com/scionproto-contrib/http-proxy/forward/utils"
 	"go.uber.org/zap"
 )
 

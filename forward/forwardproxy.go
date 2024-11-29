@@ -31,11 +31,11 @@ import (
 	"github.com/netsec-ethz/scion-apps/pkg/shttp"
 	"go.uber.org/zap"
 
-	"github.com/scionassociation/http-proxy/forward/ioutils"
-	"github.com/scionassociation/http-proxy/forward/panpolicy"
-	"github.com/scionassociation/http-proxy/forward/resolver"
-	"github.com/scionassociation/http-proxy/forward/session"
-	"github.com/scionassociation/http-proxy/forward/utils"
+	"github.com/scionproto-contrib/http-proxy/forward/ioutils"
+	"github.com/scionproto-contrib/http-proxy/forward/panpolicy"
+	"github.com/scionproto-contrib/http-proxy/forward/resolver"
+	"github.com/scionproto-contrib/http-proxy/forward/session"
+	"github.com/scionproto-contrib/http-proxy/forward/utils"
 )
 
 // ResolveHandler defines an interface for handling HTTP requests related to

@@ -22,7 +22,7 @@ import (
 	"testing"
 
 	"github.com/netsec-ethz/scion-apps/pkg/pan"
-	"github.com/scionassociation/http-proxy/forward/utils"
+	"github.com/scionproto-contrib/http-proxy/forward/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
