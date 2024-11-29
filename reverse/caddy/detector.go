@@ -1,4 +1,4 @@
-// Copyright 2024 ETH Zurich
+// Copyright 2024 Anapaya Systems, ETH Zurich
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ func init() {
 
 type SCIONDetectorHandler struct {
 	logger   *zap.Logger
-	detector reverse.Detector
+	detector *reverse.Detector
 }
 
 // CaddyModule returns the Caddy module information.
