@@ -40,7 +40,7 @@ import (
 	"go.uber.org/zap"
 
 	caddyscion "github.com/scionassociation/http-scion/forward/caddy"
-	_ "github.com/scionassociation/http-scion/reverse"
+	_ "github.com/scionassociation/http-scion/reverse/caddy"
 )
 
 var (

@@ -11,20 +11,19 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package reverseproxy
+package reverse
 
 import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/caddyserver/caddy/v2/modules/caddyhttp"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
 )
 
-func TestSCIONAdvertiserHandler_ServeHTTP(t *testing.T) {
+func TestAdvertiser_ServeHTTP(t *testing.T) {
 	tests := []struct {
 		name           string
 		remoteAddr     string
@@ -47,20 +46,16 @@ func TestSCIONAdvertiserHandler_ServeHTTP(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			handler := SCIONAdvertiserHandler{
+			handler := Advertiser{
 				StrictScion: tt.strictScion,
 				logger:      zaptest.NewLogger(t, zaptest.Level(zap.DebugLevel)),
 			}
-
-			next := caddyhttp.HandlerFunc(func(w http.ResponseWriter, r *http.Request) error {
-				return nil
-			})
 
 			req := httptest.NewRequest(http.MethodGet, "/", nil)
 			req.RemoteAddr = tt.remoteAddr
 			rec := httptest.NewRecorder()
 
-			err := handler.ServeHTTP(rec, req, next)
+			err := handler.ServeHTTP(rec, req)
 			assert.NoError(t, err)
 
 			if tt.expectedHeader == "" {

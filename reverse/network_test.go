@@ -1,10 +1,12 @@
-package reverseproxy
+package reverse
 
 import (
 	"context"
 	"crypto/tls"
+	"errors"
 	"net"
 	"net/netip"
+	"sync"
 	"testing"
 
 	"github.com/netsec-ethz/scion-apps/pkg/pan"
@@ -30,19 +32,19 @@ func TestNetwork_ListenSCION(t *testing.T) {
 	}{
 		{
 			name:      "Valid SCION network and address",
-			network:   scionNetwork,
+			network:   SCIONNetwork,
 			address:   "127.0.0.100:12345",
 			expectErr: false,
 		},
 		{
 			name:      "Valid SCION network and port",
-			network:   scionNetwork,
+			network:   SCIONNetwork,
 			address:   ":12345",
 			expectErr: false,
 		},
 		{
 			name:      "Valid SCION network and no address",
-			network:   scionNetwork,
+			network:   SCIONNetwork,
 			address:   "",
 			expectErr: false,
 		},
@@ -54,7 +56,7 @@ func TestNetwork_ListenSCION(t *testing.T) {
 		},
 		{
 			name:      "Invalid SCION address",
-			network:   scionNetwork,
+			network:   SCIONNetwork,
 			address:   "invalid-address",
 			expectErr: true,
 		},
@@ -63,7 +65,7 @@ func TestNetwork_ListenSCION(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			n := &Network{
-				scionPool:    NewUsagePool[string, *listener](),
+				Pool:         NewMockPool[string, *ReusableListener](),
 				QUICListener: &MockQUICListener{},
 			}
 			n.SetLogger(zaptest.NewLogger(t, zaptest.Level(zap.DebugLevel)))
@@ -78,4 +80,57 @@ func TestNetwork_ListenSCION(t *testing.T) {
 			}
 		})
 	}
+}
+
+type MockPool[K comparable, V any] struct {
+	mu      sync.Mutex
+	entries map[K]V
+}
+
+func NewMockPool[K comparable, V any]() *MockPool[K, V] {
+	return &MockPool[K, V]{
+		entries: make(map[K]V),
+	}
+}
+
+func (mp *MockPool[K, V]) LoadOrNew(key K, construct func() (Destructor, error)) (V, bool, error) {
+	mp.mu.Lock()
+	defer mp.mu.Unlock()
+
+	// Check if the entry already exists
+	if entry, exists := mp.entries[key]; exists {
+		return entry, true, nil
+	}
+
+	// Create a new entry
+	newEntry, err := construct()
+	if err != nil {
+		var zero V
+		return zero, false, err
+	}
+
+	// Store the new entry
+	var entry V
+	if v, ok := newEntry.(V); ok {
+		entry = v
+	} else {
+		return entry, false, errors.New("type assertion failed")
+	}
+	mp.entries[key] = entry
+
+	return entry, false, nil
+}
+
+func (mp *MockPool[K, V]) Delete(key K) (bool, error) {
+	mp.mu.Lock()
+	defer mp.mu.Unlock()
+
+	// Check if the entry exists
+	if _, exists := mp.entries[key]; !exists {
+		return false, nil
+	}
+
+	// Delete the entry
+	delete(mp.entries, key)
+	return true, nil
 }

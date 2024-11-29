@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package reverseproxy
+package reverse
 
 import (
 	"context"
@@ -22,7 +22,6 @@ import (
 	"net/netip"
 	"sync/atomic"
 
-	"github.com/caddyserver/caddy/v2"
 	"github.com/netsec-ethz/scion-apps/pkg/pan"
 	"github.com/netsec-ethz/scion-apps/pkg/quicutil"
 	"github.com/quic-go/quic-go"
@@ -30,26 +29,8 @@ import (
 )
 
 const (
-	scionNetwork = "scion"
+	SCIONNetwork = "scion"
 )
-
-var (
-	globalNetwork = Network{
-		scionPool:    NewUsagePool[string, *listener](),
-		QUICListener: &panListener{},
-	}
-
-	// Interface guards
-	_ caddy.ListenerFunc = (*Network)(nil).ListenSCION
-
-	_ net.Listener = (*listener)(nil)
-)
-
-func init() {
-	globalNetwork.logger.Store(zap.NewNop())
-
-	caddy.RegisterNetwork(scionNetwork, globalNetwork.ListenSCION) // used for HTTP over SCION
-}
 
 // QUICListener defines an interface for creating a QUIC listener.
 // It provides a method to start listening for incoming QUIC connections.
@@ -59,19 +40,25 @@ type QUICListener interface {
 		tlsConf *tls.Config, quicConfig *quic.Config) (*quic.Listener, error)
 }
 
-type panListener struct{}
-
-func (*panListener) Listen(ctx context.Context, local netip.AddrPort, selector pan.ReplySelector,
-	tlsConf *tls.Config, quicConfig *quic.Config) (*quic.Listener, error) {
-	return pan.ListenQUIC(ctx, local, selector, tlsConf, quicConfig)
+// Pool defines the interface for thread-safe map implementations
+// that pools values based on usage (reference counting).
+type Pool[K comparable, V any] interface {
+	LoadOrNew(key K, construct func() (Destructor, error)) (V, bool, error)
+	Delete(key K) (bool, error)
 }
 
 // Network is a custom network that allows to listen on SCION addresses.
 type Network struct {
-	scionPool *UsagePool[string, *listener]
+	Pool Pool[string, *ReusableListener]
 
 	logger       atomic.Pointer[zap.Logger]
 	QUICListener QUICListener
+}
+
+// SetNopLogger sets the logger to a no-operation logger. This can be useful
+// as placeholder or in scenarios where logging is not needed or should be suppressed entirely.
+func (n *Network) SetNopLogger() {
+	n.logger.Store(zap.NewNop())
 }
 
 // SetLogger sets the logger for the network. It is safe to access concurrently.
@@ -84,6 +71,10 @@ func (n *Network) Logger() *zap.Logger {
 	return n.logger.Load()
 }
 
+type Destructor interface {
+	Destruct() error
+}
+
 func (n *Network) ListenSCION(
 	ctx context.Context,
 	network string,
@@ -92,11 +83,11 @@ func (n *Network) ListenSCION(
 ) (any, error) {
 	log := n.Logger().With(zap.String("network", network), zap.String("address", address))
 
-	if network != scionNetwork {
+	if network != SCIONNetwork {
 		return nil, fmt.Errorf("network not supported: %s", network)
 	}
 
-	l, loaded, err := n.scionPool.LoadOrNew(address, func() (caddy.Destructor, error) {
+	l, loaded, err := n.Pool.LoadOrNew(address, func() (Destructor, error) {
 		laddr, err := pan.ParseOptionalIPPort(address)
 		if err != nil {
 			log.Error("Failed to parse address.", zap.Error(err))
@@ -114,7 +105,7 @@ func (n *Network) ListenSCION(
 		}
 
 		log.Debug("Created new listener.")
-		return &listener{
+		return &ReusableListener{
 			SingleStreamListener: &quicutil.SingleStreamListener{Listener: quicListener},
 			addr:                 address,
 			network:              n,
@@ -132,7 +123,7 @@ func (n *Network) ListenSCION(
 // listener makes it possible to reuse the same quicutil.SingleStreamListener.
 // This is especially important for making Caddy's config hot-reload possible.
 // It is designed to work in conjuction of the scion usage pool.
-type listener struct {
+type ReusableListener struct {
 	*quicutil.SingleStreamListener
 	addr    string
 	network *Network
@@ -140,13 +131,13 @@ type listener struct {
 
 // Close reduces the usage count of the listener.
 // The actual Close method is called, when the usage count reached 0.
-func (l *listener) Close() error {
-	_, err := l.network.scionPool.Delete(l.addr)
+func (l *ReusableListener) Close() error {
+	_, err := l.network.Pool.Delete(l.addr)
 	return err
 }
 
 // Destruct is called, when the listener is deallocated, i.e. the usage count reached 0.
-func (l *listener) Destruct() error {
+func (l *ReusableListener) Destruct() error {
 	l.network.Logger().Debug("Destroying listener.", zap.String("addr", l.addr))
 	defer l.network.Logger().Debug("Destroyed listener.", zap.String("addr", l.addr))
 
