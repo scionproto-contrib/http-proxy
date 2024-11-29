@@ -47,7 +47,7 @@ type Pool[K comparable, V any] interface {
 	Delete(key K) (bool, error)
 }
 
-// Network is a custom network that allows to listen on SCION addresses.
+// Network is a custom network that allows listening on SCION addresses.
 type Network struct {
 	Pool Pool[string, *ReusableListener]
 
@@ -56,7 +56,7 @@ type Network struct {
 }
 
 // SetNopLogger sets the logger to a no-operation logger. This can be useful
-// as placeholder or in scenarios where logging is not needed or should be suppressed entirely.
+// as a placeholder or in scenarios where logging is not needed or should be suppressed entirely.
 func (n *Network) SetNopLogger() {
 	n.logger.Store(zap.NewNop())
 }
@@ -71,10 +71,12 @@ func (n *Network) Logger() *zap.Logger {
 	return n.logger.Load()
 }
 
+// Destructor defines an interface for objects that can be destructed.
 type Destructor interface {
 	Destruct() error
 }
 
+// ListenSCION listens on a SCION address.
 func (n *Network) ListenSCION(
 	ctx context.Context,
 	network string,
@@ -84,13 +86,13 @@ func (n *Network) ListenSCION(
 	log := n.Logger().With(zap.String("network", network), zap.String("address", address))
 
 	if network != SCIONNetwork {
-		return nil, fmt.Errorf("network not supported: %s", network)
+		return nil, fmt.Errorf("unsupported network: %s", network)
 	}
 
 	l, loaded, err := n.Pool.LoadOrNew(address, func() (Destructor, error) {
 		laddr, err := pan.ParseOptionalIPPort(address)
 		if err != nil {
-			log.Error("Failed to parse address.", zap.Error(err))
+			log.Error("Failed to parse address", zap.Error(err))
 			return nil, err
 		}
 
@@ -100,11 +102,11 @@ func (n *Network) ListenSCION(
 		}
 		quicListener, err := n.QUICListener.Listen(ctx, laddr, nil, tlsCfg, nil)
 		if err != nil {
-			log.Error("Failed to listen on QUIC.", zap.Error(err))
+			log.Error("Failed to listen on QUIC", zap.Error(err))
 			return nil, err
 		}
 
-		log.Debug("Created new listener.")
+		log.Debug("Created new listener")
 		return &ReusableListener{
 			SingleStreamListener: &quicutil.SingleStreamListener{Listener: quicListener},
 			addr:                 address,
@@ -112,17 +114,17 @@ func (n *Network) ListenSCION(
 		}, nil
 	})
 	if err != nil {
-		log.Error("Failed to create new listener.", zap.Error(err))
+		log.Error("Failed to create new listener", zap.Error(err))
 		return nil, err
 	}
 
-	log.Debug("Created new listener.", zap.Bool("reuse", loaded))
-	return l, err
+	log.Debug("Created new listener", zap.Bool("reuse", loaded))
+	return l, nil
 }
 
-// listener makes it possible to reuse the same quicutil.SingleStreamListener.
+// ReusableListener makes it possible to reuse the same quicutil.SingleStreamListener.
 // This is especially important for making Caddy's config hot-reload possible.
-// It is designed to work in conjuction of the scion usage pool.
+// It is designed to work in conjunction with a pool implementation.
 type ReusableListener struct {
 	*quicutil.SingleStreamListener
 	addr    string
@@ -130,16 +132,16 @@ type ReusableListener struct {
 }
 
 // Close reduces the usage count of the listener.
-// The actual Close method is called, when the usage count reached 0.
+// The actual Close method is called when the usage count reaches 0.
 func (l *ReusableListener) Close() error {
 	_, err := l.network.Pool.Delete(l.addr)
 	return err
 }
 
-// Destruct is called, when the listener is deallocated, i.e. the usage count reached 0.
+// Destruct is called when the listener is deallocated, i.e., the usage count reaches 0.
 func (l *ReusableListener) Destruct() error {
-	l.network.Logger().Debug("Destroying listener.", zap.String("addr", l.addr))
-	defer l.network.Logger().Debug("Destroyed listener.", zap.String("addr", l.addr))
+	l.network.Logger().Debug("Destroying listener", zap.String("addr", l.addr))
+	defer l.network.Logger().Debug("Destroyed listener", zap.String("addr", l.addr))
 
 	return l.SingleStreamListener.Close()
 }

@@ -36,7 +36,7 @@ func init() {
 type SCIONAdvertiserHandler struct {
 	StrictScion string `json:"Strict-SCION,omitempty"`
 	logger      *zap.Logger
-	advertiser  reverse.Advertiser
+	advertiser  *reverse.Advertiser
 }
 
 // CaddyModule returns the Caddy module information.
