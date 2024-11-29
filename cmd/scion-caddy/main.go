@@ -20,7 +20,7 @@ import (
 	_ "github.com/mholt/caddy-l4"
 
 	_ "github.com/scionassociation/http-scion/forward/caddy"
-	_ "github.com/scionassociation/http-scion/reverse"
+	_ "github.com/scionassociation/http-scion/reverse/caddy"
 )
 
 func main() {
