@@ -39,6 +39,6 @@ go test \
   -timeout 30s \
   -tags=e2e \
   -v \
-  -run .\* github.com/scionassociation/http-proxy/test \
+  -run .\* github.com/scionproto-contrib/http-proxy/test \
   -sciond-address 127.0.0.1:30255
 ```
