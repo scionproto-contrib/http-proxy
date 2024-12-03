@@ -69,22 +69,15 @@ var (
 	responseProxyAuthRequired = []byte("required to pass valid proxy authorization header\n")
 )
 
-const (
-	// NOTE: if this changes, the browser extension has to be adapted
-	APIPathPrefix  = ""
-	APIPolicyPath  = APIPathPrefix + "/policy"
-	APIPathUsage   = APIPathPrefix + "/path-usage"
-	APIResolveURL  = APIPathPrefix + "/redirect"
-	APIResolveHost = APIPathPrefix + "/resolve"
-)
-
 func TestSecureProxyGETNoAuth(t *testing.T) {
 	const useTLS = true
 	for _, httpProxyVer := range testHTTPProxyVersions {
 		for _, resource := range testResources {
-			response, err := getViaProxy(insecureTestTarget.addr, resource, secureForwardProxy.addr, httpProxyVer, credentialsEmpty, useTLS)
-			require.NoError(t, err, "GET %s over %s: %v", resource, httpProxyVer, err)
-			assert.NoError(t, responseExpected(response, statusCodeProxyAuthReq, responseProxyAuthRequired), "GET %s over %s: %v", resource, httpProxyVer, err)
+			t.Run(fmt.Sprintf("GET %s over %s", resource, httpProxyVer), func(t *testing.T) {
+				response, err := getViaProxy(insecureTestTarget.addr, resource, secureForwardProxy.addr, httpProxyVer, credentialsEmpty, useTLS)
+				require.NoError(t, err)
+				assert.NoError(t, responseExpected(response, statusCodeProxyAuthReq, responseProxyAuthRequired))
+			})
 		}
 	}
 }
@@ -93,9 +86,11 @@ func TestSecureProxyGETAuthNoPolicy(t *testing.T) {
 	const useTLS = true
 	for _, httpProxyVer := range testHTTPProxyVersions {
 		for _, resource := range testResources {
-			response, err := getViaProxy(insecureTestTarget.addr, resource, secureForwardProxy.addr, httpProxyVer, credentialsCorrectNoPolicy, useTLS)
-			require.NoError(t, err, "GET %s over %s: %v", resource, httpProxyVer, err)
-			assert.NoError(t, responseExpected(response, responseOK, insecureTestTarget.contents[resource]), "GET %s over %s: %v", resource, httpProxyVer, err)
+			t.Run(fmt.Sprintf("GET %s over %s", resource, httpProxyVer), func(t *testing.T) {
+				response, err := getViaProxy(insecureTestTarget.addr, resource, secureForwardProxy.addr, httpProxyVer, credentialsCorrectNoPolicy, useTLS)
+				require.NoError(t, err)
+				assert.NoError(t, responseExpected(response, responseOK, insecureTestTarget.contents[resource]))
+			})
 		}
 	}
 }
@@ -104,9 +99,11 @@ func TestSecureProxyGETIncorrectAuth(t *testing.T) {
 	const useTLS = true
 	for _, httpProxyVer := range testHTTPProxyVersions {
 		for _, resource := range testResources {
-			response, err := getViaProxy(insecureTestTarget.addr, resource, secureForwardProxy.addr, httpProxyVer, credentialsIncorrect, useTLS)
-			require.NoError(t, err, "GET %s over %s: %v", resource, httpProxyVer, err)
-			assert.NoError(t, responseExpected(response, statusCodeProxyAuthReq, responseProxyAuthRequired), "GET %s over %s: %v", resource, httpProxyVer, err)
+			t.Run(fmt.Sprintf("GET %s over %s", resource, httpProxyVer), func(t *testing.T) {
+				response, err := getViaProxy(insecureTestTarget.addr, resource, secureForwardProxy.addr, httpProxyVer, credentialsIncorrect, useTLS)
+				require.NoError(t, err)
+				assert.NoError(t, responseExpected(response, statusCodeProxyAuthReq, responseProxyAuthRequired))
+			})
 		}
 	}
 }
@@ -116,22 +113,25 @@ func TestConnectIncorrectAuth(t *testing.T) {
 	for _, httpProxyVer := range testHTTPProxyVersions {
 		for _, httpTargetVer := range testHTTPTargetVersions {
 			for _, resource := range testResources {
-				response, err := connectAndGetViaProxy(insecureTestTarget.addr, resource, secureForwardProxy.addr, httpTargetVer, credentialsIncorrect, httpProxyVer, useTLS)
-				require.NoError(t, err, "CONNECT %s over %s and %s: %v", resource, httpProxyVer, httpTargetVer, err)
-				assert.NoError(t, responseExpected(response, statusCodeProxyAuthReq, responseProxyAuthRequired), "CONNECT %s over %s and %s: %v", resource, httpProxyVer, httpTargetVer, err)
+				t.Run(fmt.Sprintf("CONNECT %s over %s and %s", resource, httpProxyVer, httpTargetVer), func(t *testing.T) {
+					response, err := connectAndGetViaProxy(insecureTestTarget.addr, resource, secureForwardProxy.addr, httpTargetVer, credentialsIncorrect, httpProxyVer, useTLS)
+					require.NoError(t, err)
+					assert.NoError(t, responseExpected(response, statusCodeProxyAuthReq, responseProxyAuthRequired))
+				})
 			}
 		}
 	}
 }
 
-// TODO (minor) we should test the policy header more rigorously
 func TestGETAuthPolicyInvalid(t *testing.T) {
 	const useTLS = true
 	for _, httpProxyVer := range testHTTPProxyVersions {
 		for _, resource := range testResources {
-			response, err := getViaProxy(insecureTestTarget.addr, resource, secureForwardProxy.addr, httpProxyVer, credentialsCorrectPolicyInvalid, useTLS)
-			require.NoError(t, err, "GET %s over %s: %v", resource, httpProxyVer, err)
-			assert.NoError(t, responseExpected(response, responseOK, insecureTestTarget.contents[resource]), "GET %s over %s: %v", resource, httpProxyVer, err)
+			t.Run(fmt.Sprintf("GET %s over %s", resource, httpProxyVer), func(t *testing.T) {
+				response, err := getViaProxy(insecureTestTarget.addr, resource, secureForwardProxy.addr, httpProxyVer, credentialsCorrectPolicyInvalid, useTLS)
+				require.NoError(t, err)
+				assert.NoError(t, responseExpected(response, responseOK, insecureTestTarget.contents[resource]))
+			})
 		}
 	}
 }
@@ -140,9 +140,11 @@ func TestSecureProxyGETSelf(t *testing.T) {
 	const useTLS = true
 	for _, httpProxyVer := range testHTTPProxyVersions {
 		for _, resource := range testResources {
-			response, err := getViaProxy(secureForwardProxy.addr, resource, secureForwardProxy.addr, httpProxyVer, credentialsEmpty, useTLS)
-			require.NoError(t, err, "GET %s over %s: %v", resource, httpProxyVer, err)
-			assert.NoError(t, responseExpected(response, responseOK, secureForwardProxy.contents[resource]), "GET %s over %s: %v", resource, httpProxyVer, err)
+			t.Run(fmt.Sprintf("GET %s over %s", resource, httpProxyVer), func(t *testing.T) {
+				response, err := getViaProxy(secureForwardProxy.addr, resource, secureForwardProxy.addr, httpProxyVer, credentialsEmpty, useTLS)
+				require.NoError(t, err)
+				assert.NoError(t, responseExpected(response, responseOK, secureForwardProxy.contents[resource]))
+			})
 		}
 	}
 }
@@ -152,9 +154,11 @@ func TestConnectNoAuth(t *testing.T) {
 	for _, httpProxyVer := range testHTTPProxyVersions {
 		for _, httpTargetVer := range testHTTPTargetVersions {
 			for _, resource := range testResources {
-				response, err := connectAndGetViaProxy(insecureTestTarget.addr, resource, secureForwardProxy.addr, httpTargetVer, credentialsEmpty, httpProxyVer, useTLS)
-				require.NoError(t, err, "CONNECT %s over %s and %s: %v", resource, httpProxyVer, httpTargetVer, err)
-				assert.NoError(t, responseExpected(response, statusCodeProxyAuthReq, responseProxyAuthRequired), "CONNECT %s over %s and %s: %v", resource, httpProxyVer, httpTargetVer, err)
+				t.Run(fmt.Sprintf("CONNECT %s over %s and %s", resource, httpProxyVer, httpTargetVer), func(t *testing.T) {
+					response, err := connectAndGetViaProxy(insecureTestTarget.addr, resource, secureForwardProxy.addr, httpTargetVer, credentialsEmpty, httpProxyVer, useTLS)
+					require.NoError(t, err)
+					assert.NoError(t, responseExpected(response, statusCodeProxyAuthReq, responseProxyAuthRequired))
+				})
 			}
 		}
 	}
@@ -165,9 +169,11 @@ func TestConnectAuthNoPolicy(t *testing.T) {
 	for _, httpProxyVer := range testHTTPProxyVersions {
 		for _, httpTargetVer := range testHTTPTargetVersions {
 			for _, resource := range testResources {
-				response, err := connectAndGetViaProxy(insecureTestTarget.addr, resource, secureForwardProxy.addr, httpTargetVer, credentialsCorrectNoPolicy, httpProxyVer, useTLS)
-				require.NoError(t, err, "CONNECT %s over %s and %s: %v", resource, httpProxyVer, httpTargetVer, err)
-				assert.NoError(t, responseExpected(response, responseOK, insecureTestTarget.contents[resource]), "CONNECT %s over %s and %s: %v", resource, httpProxyVer, httpTargetVer, err)
+				t.Run(fmt.Sprintf("CONNECT %s over %s and %s", resource, httpProxyVer, httpTargetVer), func(t *testing.T) {
+					response, err := connectAndGetViaProxy(insecureTestTarget.addr, resource, secureForwardProxy.addr, httpTargetVer, credentialsCorrectNoPolicy, httpProxyVer, useTLS)
+					require.NoError(t, err)
+					assert.NoError(t, responseExpected(response, responseOK, insecureTestTarget.contents[resource]))
+				})
 			}
 		}
 	}
@@ -178,9 +184,11 @@ func TestConnectAuthPolicyInvalid(t *testing.T) {
 	for _, httpProxyVer := range testHTTPProxyVersions {
 		for _, httpTargetVer := range testHTTPTargetVersions {
 			for _, resource := range testResources {
-				response, err := connectAndGetViaProxy(insecureTestTarget.addr, resource, secureForwardProxy.addr, httpTargetVer, credentialsCorrectPolicyInvalid, httpProxyVer, useTLS)
-				require.NoError(t, err, "CONNECT %s over %s and %s: %v", resource, httpProxyVer, httpTargetVer, err)
-				assert.NoError(t, responseExpected(response, responseOK, insecureTestTarget.contents[resource]), "CONNECT %s over %s and %s: %v", resource, httpProxyVer, httpTargetVer, err)
+				t.Run(fmt.Sprintf("CONNECT %s over %s and %s", resource, httpProxyVer, httpTargetVer), func(t *testing.T) {
+					response, err := connectAndGetViaProxy(insecureTestTarget.addr, resource, secureForwardProxy.addr, httpTargetVer, credentialsCorrectPolicyInvalid, httpProxyVer, useTLS)
+					require.NoError(t, err)
+					assert.NoError(t, responseExpected(response, responseOK, insecureTestTarget.contents[resource]))
+				})
 			}
 		}
 	}
@@ -189,19 +197,23 @@ func TestConnectAuthPolicyInvalid(t *testing.T) {
 func TestAPISetPolicy(t *testing.T) {
 	const useTLS = true
 	for _, httpProxyVer := range testHTTPTargetVersions {
-		proxyConn, err := dial(secureForwardProxy.addr, httpProxyVer, useTLS)
-		require.NoError(t, err, "Dial proxy over %s: %v", httpProxyVer, err)
+		t.Run(fmt.Sprintf("Set Policy over %s", httpProxyVer), func(t *testing.T) {
+			proxyConn, err := dial(secureForwardProxy.addr, httpProxyVer, useTLS)
+			require.NoError(t, err)
 
-		req, err := http.NewRequest(http.MethodPut, "http://"+secureForwardProxy.addr+"/policy", bytes.NewBuffer([]byte(`["+ 42", "-"]`)))
-		require.NoError(t, err, "Set Policy over %s: %v", httpProxyVer, err)
+			req, err := http.NewRequest(http.MethodPut, "http://"+secureForwardProxy.addr+"/policy", bytes.NewBuffer([]byte(`["+ 42", "-"]`)))
+			require.NoError(t, err)
 
-		tp := http.Transport{Dial: func(network, addr string) (net.Conn, error) {
-			return proxyConn, nil
-		}}
+			tp := &http.Transport{
+				Dial: func(network, addr string) (net.Conn, error) {
+					return proxyConn, nil
+				},
+			}
 
-		response, err := tp.RoundTrip(req)
-		require.NoError(t, err, "Set Policy over %s: %v", httpProxyVer, err)
-		assert.NoError(t, responseExpected(response, responseOK, nil), "Set Policy over %s: %v", httpProxyVer, err)
+			response, err := tp.RoundTrip(req)
+			require.NoError(t, err)
+			assert.NoError(t, responseExpected(response, responseOK, nil))
+		})
 	}
 }
 
@@ -310,13 +322,14 @@ func connectAndGetViaProxy(targetHost, resource, proxyAddr, httpTargetVer, proxy
 	if err != nil {
 		return nil, err
 	}
+	// do not defer close here, because we want to close the connection only after the response has been read
 
 	req := &http.Request{Header: make(http.Header)}
 	if len(proxyCredentials) > 0 {
 		req.Header.Set("Proxy-Authorization", proxyCredentials)
 	}
 	req.Host = targetHost
-	req.URL, err = url.Parse("https://" + req.Host + "/") // appending "/" causes file server to NOT issue redirect...
+	req.URL, err = url.Parse("https://" + req.Host + "/")
 	if err != nil {
 		return nil, err
 	}
@@ -350,11 +363,11 @@ func connectAndGetViaProxy(targetHost, resource, proxyAddr, httpTargetVer, proxy
 			return resp, err
 		}
 	default:
-		panic("proxy ver: " + httpProxyVer)
+		return nil, fmt.Errorf("unsupported proxy version: %s", httpProxyVer)
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return resp, err
+		return resp, nil
 	}
 
 	return getResourceViaProxyConn(proxyConn, targetHost, resource, proxyCredentials, httpTargetVer)
@@ -389,49 +402,32 @@ func getResourceViaProxyConn(proxyConn net.Conn, targetHost, resource, proxyCred
 	case "HTTP/1.1":
 		req.ProtoMajor = 1
 		req.ProtoMinor = 1
-		t := http.Transport{Dial: func(network, addr string) (net.Conn, error) {
-			return proxyConn, nil
-		}}
+		t := http.Transport{
+			Dial: func(network, addr string) (net.Conn, error) {
+				return proxyConn, nil
+			},
+		}
 		return t.RoundTrip(req)
 	default:
-		panic("proxy ver: " + httpTargetVer)
+		return nil, fmt.Errorf("unsupported HTTP version: %s", httpTargetVer)
 	}
 }
 
 // If response is expected: returns nil.
 func responseExpected(resp *http.Response, expectedStatusCode int, expectedResponse []byte) error {
 	if expectedStatusCode != resp.StatusCode {
-		return fmt.Errorf("Expected response status code %d, got %d", expectedStatusCode, resp.StatusCode)
+		return fmt.Errorf("expected response status code %d, got %d", expectedStatusCode, resp.StatusCode)
 	}
 
-	responseLen := len(expectedResponse) + 2 // 2 extra bytes is enough to detected that expectedResponse is longer
-	response := make([]byte, responseLen)
-	var nTotal int
-	for {
-		n, err := resp.Body.Read(response[nTotal:])
-		nTotal += n
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			panic(err)
-		}
-		if nTotal == responseLen {
-			return fmt.Errorf("nTotal == responseLen, but haven't seen io.EOF. Expected response: '%s'\nGot: '%s'",
-				expectedResponse, response)
-		}
+	response, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("error reading response body: %v", err)
 	}
-	response = response[:nTotal]
-	if len(expectedResponse) != len(response) {
-		return fmt.Errorf("Expected response length: %d, got: %d.\nExpected response: '%s'\nGot: '%s'",
-			len(expectedResponse), len(response), expectedResponse, response)
+
+	if !bytes.Equal(expectedResponse, response) {
+		return fmt.Errorf("expected response: '%s', got: '%s'", expectedResponse, response)
 	}
-	for i := range response {
-		if response[i] != expectedResponse[i] {
-			return fmt.Errorf("response mismatch at character #%d. Expected response: '%s'\nGot: '%s'",
-				i, expectedResponse, response)
-		}
-	}
+
 	return nil
 }
 
@@ -450,6 +446,14 @@ var (
 	insecureTestTarget   testServer
 )
 
+const (
+	apiPathPrefix  = ""
+	apiPolicyPath  = apiPathPrefix + "/policy"
+	apiPathUsage   = apiPathPrefix + "/path-usage"
+	apiResolveURL  = apiPathPrefix + "/redirect"
+	apiResolveHost = apiPathPrefix + "/resolve"
+)
+
 func (s *testServer) interceptConnect(connect, next http.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		if req.Method == http.MethodConnect || req.Host != s.addr {
@@ -462,25 +466,25 @@ func (s *testServer) interceptConnect(connect, next http.Handler) http.HandlerFu
 
 func (s *testServer) start() {
 	mux := http.NewServeMux()
-	mux.HandleFunc(APIPolicyPath, func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(apiPolicyPath, func(w http.ResponseWriter, r *http.Request) {
 		if err := s.proxy.HandlePolicyPath(w, r); err != nil {
 			returnCode, err := unwrapError(err)
 			http.Error(w, err.Error(), returnCode)
 		}
 	})
-	mux.HandleFunc(APIPathUsage, func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(apiPathUsage, func(w http.ResponseWriter, r *http.Request) {
 		if err := s.proxy.HandlePathUsage(w, r); err != nil {
 			returnCode, err := unwrapError(err)
 			http.Error(w, err.Error(), returnCode)
 		}
 	})
-	mux.HandleFunc(APIResolveURL, func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(apiResolveURL, func(w http.ResponseWriter, r *http.Request) {
 		if err := s.proxy.HandleResolveURL(w, r); err != nil {
 			returnCode, err := unwrapError(err)
 			http.Error(w, err.Error(), returnCode)
 		}
 	})
-	mux.HandleFunc(APIResolveHost, func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(apiResolveHost, func(w http.ResponseWriter, r *http.Request) {
 		if err := s.proxy.HandleResolveHost(w, r); err != nil {
 			returnCode, err := unwrapError(err)
 			http.Error(w, err.Error(), returnCode)
@@ -524,18 +528,17 @@ func (s *testServer) start() {
 }
 
 func (s *testServer) loadContents() {
-	s.contents = map[string][]byte{}
-	index, err := os.ReadFile(s.root + "/index.html")
-	if err != nil {
-		panic(err)
+	s.contents = make(map[string][]byte)
+	files := []string{"/index.html", "/image.png"}
+	for _, file := range files {
+		content, err := os.ReadFile(s.root + file)
+		if err != nil {
+			panic(err)
+		}
+		s.contents[file] = content
 	}
-	s.contents["/index.html"] = index
-	s.contents["/"] = index
-	s.contents[""] = index
-	s.contents["/image.png"], err = os.ReadFile(s.root + "/image.png")
-	if err != nil {
-		panic(err)
-	}
+	s.contents["/"] = s.contents["/index.html"]
+	s.contents[""] = s.contents["/index.html"]
 }
 
 func TestMain(m *testing.M) {
