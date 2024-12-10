@@ -30,6 +30,12 @@ In the meantime, you can download the `latest release <https://github.com/scionp
 Then, you can follow the steps below to install the plugin:
 
 - Copy the binary to ``/usr/local/bin`` or any other directory in your ``$PATH``.
+- Add network capabilities to the binary:
+
+    .. code-block:: bash
+
+        sudo setcap cap_net_bind_service=+ep /usr/local/bin/scion-caddy
+
 - Add a data directory for the plugin to store its data:
 
     .. code-block:: bash
