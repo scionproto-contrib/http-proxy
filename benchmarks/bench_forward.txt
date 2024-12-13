@@ -1,0 +1,18 @@
+goos: linux
+goarch: amd64
+pkg: github.com/scionproto-contrib/http-proxy/forward
+cpu: 12th Gen Intel(R) Core(TM) i7-1260P
+BenchmarkSecureProxyGETAuthNoPolicy-16    	     648	   1925154 ns/op	  152174 B/op	    1540 allocs/op
+BenchmarkSecureProxyGETAuthNoPolicy-16    	     770	   1607957 ns/op	  151717 B/op	    1539 allocs/op
+BenchmarkSecureProxyGETAuthNoPolicy-16    	     678	   1851881 ns/op	  150931 B/op	    1539 allocs/op
+BenchmarkSecureProxyGETAuthNoPolicy-16    	     796	   1439161 ns/op	  151311 B/op	    1539 allocs/op
+BenchmarkSecureProxyGETAuthNoPolicy-16    	     711	   1510848 ns/op	  151152 B/op	    1539 allocs/op
+BenchmarkSecureProxyGETAuthNoPolicy-16    	     752	   1694843 ns/op	  150747 B/op	    1539 allocs/op
+BenchmarkConnectAuthNoPolicy-16           	     638	   1576339 ns/op	  275658 B/op	    1532 allocs/op
+BenchmarkConnectAuthNoPolicy-16           	     652	   2066520 ns/op	  270992 B/op	    1531 allocs/op
+BenchmarkConnectAuthNoPolicy-16           	     612	   1971121 ns/op	  271924 B/op	    1531 allocs/op
+BenchmarkConnectAuthNoPolicy-16           	     746	   1674098 ns/op	  272421 B/op	    1531 allocs/op
+BenchmarkConnectAuthNoPolicy-16           	     739	   1564523 ns/op	  271603 B/op	    1531 allocs/op
+BenchmarkConnectAuthNoPolicy-16           	     710	   1780293 ns/op	  272746 B/op	    1531 allocs/op
+PASS
+ok  	github.com/scionproto-contrib/http-proxy/forward	21.175s
