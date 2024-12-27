@@ -15,28 +15,18 @@ package reverse
 
 import (
 	"context"
-	"crypto/tls"
 	"errors"
 	"net"
 	"net/netip"
 	"sync"
 	"testing"
 
-	"github.com/netsec-ethz/scion-apps/pkg/pan"
-	"github.com/quic-go/quic-go"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
 )
 
-type MockQUICListener struct{}
-
-func (l *MockQUICListener) Listen(ctx context.Context, local netip.AddrPort, selector pan.ReplySelector,
-	tlsConf *tls.Config, quicConfig *quic.Config) (*quic.Listener, error) {
-	return nil, nil
-}
-
-func TestNetwork_ListenSCION(t *testing.T) {
+func TestNetwork_Listen(t *testing.T) {
 	tests := []struct {
 		name      string
 		network   string
@@ -44,32 +34,80 @@ func TestNetwork_ListenSCION(t *testing.T) {
 		expectErr bool
 	}{
 		{
-			name:      "Valid SCION network and address",
-			network:   SCIONNetwork,
-			address:   "127.0.0.100:12345",
-			expectErr: false,
-		},
-		{
-			name:      "Valid SCION network and port",
-			network:   SCIONNetwork,
-			address:   ":12345",
-			expectErr: false,
-		},
-		{
-			name:      "Valid SCION network and no address",
-			network:   SCIONNetwork,
-			address:   "",
-			expectErr: false,
-		},
-		{
 			name:      "Invalid network",
 			network:   "tcp",
 			address:   "127.0.0.100:12345",
 			expectErr: true,
 		},
 		{
+			name:      "Valid SCION network and address",
+			network:   SCION,
+			address:   "127.0.0.100:12345",
+			expectErr: false,
+		},
+		{
+			name:      "Valid SCION network and port",
+			network:   SCION,
+			address:   ":12345",
+			expectErr: false,
+		},
+		{
+			name:      "Valid SCION network and no address",
+			network:   SCION,
+			address:   "",
+			expectErr: true,
+		},
+		{
 			name:      "Invalid SCION address",
-			network:   SCIONNetwork,
+			network:   SCION,
+			address:   "invalid-address",
+			expectErr: true,
+		},
+		{
+			name:      "Valid SCION3 network and address",
+			network:   SCION3,
+			address:   "127.0.0.100:12345",
+			expectErr: false,
+		},
+		{
+			name:      "Valid SCION3 network and port",
+			network:   SCION3,
+			address:   ":12345",
+			expectErr: false,
+		},
+		{
+			name:      "Valid SCION3 network and no address",
+			network:   SCION3,
+			address:   "",
+			expectErr: true,
+		},
+		{
+			name:      "Invalid SCION3 address",
+			network:   SCION3,
+			address:   "invalid-address",
+			expectErr: true,
+		},
+		{
+			name:      "Valid SCION3QUIC network and address",
+			network:   SCION3QUIC,
+			address:   "127.0.0.100:12345",
+			expectErr: false,
+		},
+		{
+			name:      "Valid SCION3QUIC network and port",
+			network:   SCION3QUIC,
+			address:   ":12345",
+			expectErr: false,
+		},
+		{
+			name:      "Valid SCION3QUIC network and no address",
+			network:   SCION3QUIC,
+			address:   "",
+			expectErr: true,
+		},
+		{
+			name:      "Invalid SCION3QUIC address",
+			network:   SCION3QUIC,
 			address:   "invalid-address",
 			expectErr: true,
 		},
@@ -78,13 +116,15 @@ func TestNetwork_ListenSCION(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			n := &Network{
-				Pool:         NewMockPool[string, *ReusableListener](),
-				QUICListener: &MockQUICListener{},
+				Pool:               newMockPool[string, Reusable](),
+				listenerSCION:      &mockQUICListener{},
+				listenerSCION3QUIC: &mockQUICListener{},
+				listenerSCIONDummy: &mockQUICListener{},
 			}
 			n.SetLogger(zaptest.NewLogger(t, zaptest.Level(zap.DebugLevel)))
 
 			cfg := net.ListenConfig{}
-			_, err := n.ListenSCION(context.Background(), tt.network, tt.address, cfg)
+			_, err := n.Listen(context.Background(), tt.network, tt.address, cfg)
 
 			if tt.expectErr {
 				assert.Error(t, err)
@@ -95,18 +135,39 @@ func TestNetwork_ListenSCION(t *testing.T) {
 	}
 }
 
-type MockPool[K comparable, V any] struct {
+type mockQUICListener struct{}
+
+type mockReusable struct{}
+
+func (l *mockQUICListener) listen(
+	ctx context.Context,
+	network *Network,
+	laddr netip.AddrPort,
+	cfg net.ListenConfig,
+) (Destructor, error) {
+	return &mockReusable{}, nil
+}
+
+func (m *mockReusable) Destruct() error {
+	return nil
+}
+
+func (m *mockReusable) Close() error {
+	return nil
+}
+
+type mockPool[K comparable, V any] struct {
 	mu      sync.Mutex
 	entries map[K]V
 }
 
-func NewMockPool[K comparable, V any]() *MockPool[K, V] {
-	return &MockPool[K, V]{
+func newMockPool[K comparable, V any]() *mockPool[K, V] {
+	return &mockPool[K, V]{
 		entries: make(map[K]V),
 	}
 }
 
-func (mp *MockPool[K, V]) LoadOrNew(key K, construct func() (Destructor, error)) (V, bool, error) {
+func (mp *mockPool[K, V]) LoadOrNew(key K, construct func() (Destructor, error)) (V, bool, error) {
 	mp.mu.Lock()
 	defer mp.mu.Unlock()
 
@@ -134,7 +195,7 @@ func (mp *MockPool[K, V]) LoadOrNew(key K, construct func() (Destructor, error))
 	return entry, false, nil
 }
 
-func (mp *MockPool[K, V]) Delete(key K) (bool, error) {
+func (mp *mockPool[K, V]) Delete(key K) (bool, error) {
 	mp.mu.Lock()
 	defer mp.mu.Unlock()
 
