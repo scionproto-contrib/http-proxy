@@ -26,7 +26,6 @@ import (
 
 	"github.com/netsec-ethz/scion-apps/pkg/pan"
 	"github.com/netsec-ethz/scion-apps/pkg/quicutil"
-	"github.com/scionproto/scion/pkg/log"
 	"go.uber.org/zap"
 )
 
@@ -114,9 +113,7 @@ func (n *Network) Listen(
 		l = n.listenerSCION
 	case SCION3QUIC:
 		l = n.listenerSCION3QUIC
-	case SCION3:
-		fallthrough
-	case SCIONDummy:
+	case SCION3, SCIONDummy:
 		l = n.listenerSCIONDummy
 	default:
 		return nil, fmt.Errorf("unsupported network: %s", network)
@@ -136,7 +133,7 @@ func (n *Network) Listen(
 		return nil, err
 	}
 	n.Logger().Debug("created new listener", zap.String("addr", key), zap.Bool("reuse", loaded))
-	return c, err
+	return c, nil
 }
 
 type listenerSCION struct {
@@ -154,11 +151,11 @@ func (l *listenerSCION) listen(
 	}
 	quicListener, err := pan.ListenQUIC(ctx, laddr, nil, tlsCfg, nil)
 	if err != nil {
-		log.Error("Failed to listen on QUIC", zap.Error(err))
+		network.Logger().Error("failed to listen on QUIC", zap.Error(err))
 		return nil, err
 	}
 
-	log.Debug("Created new listener")
+	network.Logger().Debug("created new listener", zap.String("addr", laddr.String()))
 	return &reusableListener{
 		SingleStreamListener: &quicutil.SingleStreamListener{QUICListener: quicListener},
 		addr:                 laddr.String(),
@@ -166,26 +163,25 @@ func (l *listenerSCION) listen(
 	}, nil
 }
 
-// reusableListener makes it possible to reuse the same quicutil.SingleStreamListener.
-// This is especially important for making Caddy's config hot-reload possible.
-// It is designed to work in conjunction with a pool implementation.
+// reusableListener allows reusing the same quicutil.SingleStreamListener.
+// It works in conjunction with a pool implementation to manage usage.
 type reusableListener struct {
 	*quicutil.SingleStreamListener
 	addr    string
 	network *Network
 }
 
-// Close reduces the usage count of the listener.
-// The actual Close method is called when the usage count reaches 0.
+// Close decreases the usage count of the listener.
+// The actual Close method is invoked when the usage count reaches zero.
 func (l *reusableListener) Close() error {
 	_, err := l.network.Pool.Delete(poolKey(SCION, l.addr))
 	return err
 }
 
-// Destruct is called when the listener is deallocated, i.e., the usage count reaches 0.
+// Destruct is called when the listener is deallocated, i.e., when the usage count reaches zero.
 func (l *reusableListener) Destruct() error {
-	l.network.Logger().Debug("Destroying listener", zap.String("addr", l.addr))
-	defer l.network.Logger().Debug("Destroyed listener", zap.String("addr", l.addr))
+	l.network.Logger().Debug("destroying listener", zap.String("addr", l.addr))
+	defer l.network.Logger().Debug("destroyed listener", zap.String("addr", l.addr))
 
 	return l.SingleStreamListener.Close()
 }
@@ -204,8 +200,11 @@ func (l *listenerSCION3QUIC) listen(
 
 	c, err := pan.ListenUDP(ctx, laddr, nil)
 	if err != nil {
+		network.Logger().Error("failed to listen on SCION3QUIC", zap.Error(err))
 		return nil, err
 	}
+
+	network.Logger().Debug("created new SCION3QUIC listener", zap.String("addr", laddr.String()))
 	return &conn{
 		PacketConn: c,
 		addr:       laddr.String(),

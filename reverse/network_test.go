@@ -26,6 +26,7 @@ import (
 	"go.uber.org/zap/zaptest"
 )
 
+// TestNetwork_Listen tests the Listen method of the Network struct.
 func TestNetwork_Listen(t *testing.T) {
 	tests := []struct {
 		name      string
@@ -33,98 +34,33 @@ func TestNetwork_Listen(t *testing.T) {
 		address   string
 		expectErr bool
 	}{
-		{
-			name:      "Invalid network",
-			network:   "tcp",
-			address:   "127.0.0.100:12345",
-			expectErr: true,
-		},
-		{
-			name:      "Valid SCION network and address",
-			network:   SCION,
-			address:   "127.0.0.100:12345",
-			expectErr: false,
-		},
-		{
-			name:      "Valid SCION network and port",
-			network:   SCION,
-			address:   ":12345",
-			expectErr: false,
-		},
-		{
-			name:      "Valid SCION network and no address",
-			network:   SCION,
-			address:   "",
-			expectErr: true,
-		},
-		{
-			name:      "Invalid SCION address",
-			network:   SCION,
-			address:   "invalid-address",
-			expectErr: true,
-		},
-		{
-			name:      "Valid SCION3 network and address",
-			network:   SCION3,
-			address:   "127.0.0.100:12345",
-			expectErr: false,
-		},
-		{
-			name:      "Valid SCION3 network and port",
-			network:   SCION3,
-			address:   ":12345",
-			expectErr: false,
-		},
-		{
-			name:      "Valid SCION3 network and no address",
-			network:   SCION3,
-			address:   "",
-			expectErr: true,
-		},
-		{
-			name:      "Invalid SCION3 address",
-			network:   SCION3,
-			address:   "invalid-address",
-			expectErr: true,
-		},
-		{
-			name:      "Valid SCION3QUIC network and address",
-			network:   SCION3QUIC,
-			address:   "127.0.0.100:12345",
-			expectErr: false,
-		},
-		{
-			name:      "Valid SCION3QUIC network and port",
-			network:   SCION3QUIC,
-			address:   ":12345",
-			expectErr: false,
-		},
-		{
-			name:      "Valid SCION3QUIC network and no address",
-			network:   SCION3QUIC,
-			address:   "",
-			expectErr: true,
-		},
-		{
-			name:      "Invalid SCION3QUIC address",
-			network:   SCION3QUIC,
-			address:   "invalid-address",
-			expectErr: true,
-		},
+		{"Invalid network", "tcp", "127.0.0.100:12345", true},
+		{"Valid SCION network and address", SCION, "127.0.0.100:12345", false},
+		{"Valid SCION network and port", SCION, ":12345", false},
+		{"Valid SCION network and no address", SCION, "", true},
+		{"Invalid SCION address", SCION, "invalid-address", true},
+		{"Valid SCION3 network and address", SCION3, "127.0.0.100:12345", false},
+		{"Valid SCION3 network and port", SCION3, ":12345", false},
+		{"Valid SCION3 network and no address", SCION3, "", true},
+		{"Invalid SCION3 address", SCION3, "invalid-address", true},
+		{"Valid SCION3QUIC network and address", SCION3QUIC, "127.0.0.100:12345", false},
+		{"Valid SCION3QUIC network and port", SCION3QUIC, ":12345", false},
+		{"Valid SCION3QUIC network and no address", SCION3QUIC, "", true},
+		{"Invalid SCION3QUIC address", SCION3QUIC, "invalid-address", true},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			n := &Network{
+			network := &Network{
 				Pool:               newMockPool[string, Reusable](),
-				listenerSCION:      &mockQUICListener{},
-				listenerSCION3QUIC: &mockQUICListener{},
-				listenerSCIONDummy: &mockQUICListener{},
+				listenerSCION:      &mockListener{},
+				listenerSCION3QUIC: &mockListener{},
+				listenerSCIONDummy: &mockListener{},
 			}
-			n.SetLogger(zaptest.NewLogger(t, zaptest.Level(zap.DebugLevel)))
+			network.SetLogger(zaptest.NewLogger(t, zaptest.Level(zap.DebugLevel)))
 
 			cfg := net.ListenConfig{}
-			_, err := n.Listen(context.Background(), tt.network, tt.address, cfg)
+			_, err := network.Listen(context.Background(), tt.network, tt.address, cfg)
 
 			if tt.expectErr {
 				assert.Error(t, err)
@@ -135,11 +71,11 @@ func TestNetwork_Listen(t *testing.T) {
 	}
 }
 
-type mockQUICListener struct{}
+type mockListener struct{}
 
 type mockReusable struct{}
 
-func (l *mockQUICListener) listen(
+func (l *mockListener) listen(
 	ctx context.Context,
 	network *Network,
 	laddr netip.AddrPort,
@@ -171,19 +107,16 @@ func (mp *mockPool[K, V]) LoadOrNew(key K, construct func() (Destructor, error))
 	mp.mu.Lock()
 	defer mp.mu.Unlock()
 
-	// Check if the entry already exists
 	if entry, exists := mp.entries[key]; exists {
 		return entry, true, nil
 	}
 
-	// Create a new entry
 	newEntry, err := construct()
 	if err != nil {
 		var zero V
 		return zero, false, err
 	}
 
-	// Store the new entry
 	var entry V
 	if v, ok := newEntry.(V); ok {
 		entry = v
@@ -199,12 +132,10 @@ func (mp *mockPool[K, V]) Delete(key K) (bool, error) {
 	mp.mu.Lock()
 	defer mp.mu.Unlock()
 
-	// Check if the entry exists
 	if _, exists := mp.entries[key]; !exists {
 		return false, nil
 	}
 
-	// Delete the entry
 	delete(mp.entries, key)
 	return true, nil
 }
