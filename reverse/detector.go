@@ -16,6 +16,7 @@ package reverse
 import (
 	"net/http"
 
+	"github.com/netsec-ethz/scion-apps/pkg/pan"
 	"github.com/scionproto/scion/pkg/snet"
 	"go.uber.org/zap"
 )
@@ -40,6 +41,13 @@ func (d *Detector) ServeHTTP(w http.ResponseWriter, r *http.Request) error {
 	if _, err := snet.ParseUDPAddr(r.RemoteAddr); err == nil {
 		r.Header.Add("X-SCION", "on")
 		r.Header.Add("X-SCION-Remote-Addr", r.RemoteAddr)
+		// XXX(JordiSubira): This is a workaround to avoid a caddy specific error
+		// we should probably move this to a separate middleware.
+		remoteAddr, err := pan.ParseUDPAddr(r.RemoteAddr)
+		if err != nil {
+			d.logger.Debug("Failed to parse remote address", zap.Error(err))
+		}
+		r.RemoteAddr = remoteAddr.String()
 	} else {
 		r.Header.Add("X-SCION", "off")
 	}
