@@ -11,19 +11,21 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package reverse
+package singlestream
 
 import (
 	"context"
 	"errors"
 	"net"
-	"net/netip"
 	"sync"
 	"testing"
 
+	"github.com/scionproto/scion/pkg/snet"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
+
+	"github.com/scionproto-contrib/http-proxy/networks/utils"
 )
 
 // TestNetwork_Listen tests the Listen method of the Network struct.
@@ -34,28 +36,18 @@ func TestNetwork_Listen(t *testing.T) {
 		address   string
 		expectErr bool
 	}{
-		{"Invalid network", "tcp", "127.0.0.100:12345", true},
-		{"Valid SCION network and address", SCION, "127.0.0.100:12345", false},
-		{"Valid SCION network and port", SCION, ":12345", false},
-		{"Valid SCION network and no address", SCION, "", true},
-		{"Invalid SCION address", SCION, "invalid-address", true},
-		{"Valid SCION3 network and address", SCION3, "127.0.0.100:12345", false},
-		{"Valid SCION3 network and port", SCION3, ":12345", false},
-		{"Valid SCION3 network and no address", SCION3, "", true},
-		{"Invalid SCION3 address", SCION3, "invalid-address", true},
-		{"Valid SCION3QUIC network and address", SCION3QUIC, "127.0.0.100:12345", false},
-		{"Valid SCION3QUIC network and port", SCION3QUIC, ":12345", false},
-		{"Valid SCION3QUIC network and no address", SCION3QUIC, "", true},
-		{"Invalid SCION3QUIC address", SCION3QUIC, "invalid-address", true},
+		{"Invalid network", "tcp", "[1-ff00:0:110,127.0.0.1]:12345", true},
+		{"Valid SCIONSingleStream IPv4 network and address", SCIONSingleStream, "[1-ff00:0:110,127.0.0.1]:12345", false},
+		{"Valid SCIONSingleStream any IPv4 network and port", SCIONSingleStream, "[1-ff00:0:110,0.0.0.0]:12345", false},
+		{"Valid SCIONSingleStream any IPv6 network and port", SCIONSingleStream, "[1-ff00:0:110,::]:12345", false},
+		{"Invalid SCIONSingleStream address", SCIONSingleStream, "invalid-address", true},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			network := &Network{
-				Pool:               newMockPool[string, Reusable](),
-				listenerSCION:      &mockListener{},
-				listenerSCION3QUIC: &mockListener{},
-				listenerSCIONDummy: &mockListener{},
+				Pool:     newMockPool[string, utils.Reusable](),
+				listener: &mockListener{},
 			}
 			network.SetLogger(zaptest.NewLogger(t, zaptest.Level(zap.DebugLevel)))
 
@@ -78,9 +70,9 @@ type mockReusable struct{}
 func (l *mockListener) listen(
 	ctx context.Context,
 	network *Network,
-	laddr netip.AddrPort,
+	laddr *snet.UDPAddr,
 	cfg net.ListenConfig,
-) (Destructor, error) {
+) (utils.Destructor, error) {
 	return &mockReusable{}, nil
 }
 
@@ -103,7 +95,7 @@ func newMockPool[K comparable, V any]() *mockPool[K, V] {
 	}
 }
 
-func (mp *mockPool[K, V]) LoadOrNew(key K, construct func() (Destructor, error)) (V, bool, error) {
+func (mp *mockPool[K, V]) LoadOrNew(key K, construct func() (utils.Destructor, error)) (V, bool, error) {
 	mp.mu.Lock()
 	defer mp.mu.Unlock()
 
