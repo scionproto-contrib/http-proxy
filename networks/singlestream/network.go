@@ -28,7 +28,7 @@ import (
 	"github.com/scionproto/scion/pkg/snet"
 	"go.uber.org/zap"
 
-	"github.com/scionproto-contrib/http-proxy/networks/utils"
+	"github.com/scionproto-contrib/http-proxy/networks"
 )
 
 const (
@@ -42,19 +42,19 @@ type listener interface {
 	listen(ctx context.Context,
 		network *Network,
 		laddr *snet.UDPAddr,
-		cfg net.ListenConfig) (utils.Destructor, error)
+		cfg net.ListenConfig) (networks.Destructor, error)
 }
 
 // Network is a custom network that allows listening on SCION addresses.
 type Network struct {
-	Pool              utils.Pool[string, utils.Reusable]
+	Pool              networks.Pool[string, networks.Reusable]
 	PacketConnMetrics snet.SCIONPacketConnMetrics
 
 	logger   atomic.Pointer[zap.Logger]
 	listener listener
 }
 
-func NewNetwork(pool utils.Pool[string, utils.Reusable]) *Network {
+func NewNetwork(pool networks.Pool[string, networks.Reusable]) *Network {
 	return &Network{
 		Pool:     pool,
 		listener: &listenerSCION{},
@@ -97,8 +97,8 @@ func (n *Network) Listen(
 	if laddr.Host.Port == 0 {
 		return nil, fmt.Errorf("wildcard port not supported: %s", address)
 	}
-	key := utils.PoolKey(network, laddr.String())
-	c, loaded, err := n.Pool.LoadOrNew(key, func() (utils.Destructor, error) {
+	key := networks.PoolKey(network, laddr.String())
+	c, loaded, err := n.Pool.LoadOrNew(key, func() (networks.Destructor, error) {
 		return n.listener.listen(ctx, n, laddr, cfg)
 	})
 	if err != nil {
@@ -116,7 +116,7 @@ func (l *listenerSCION) listen(
 	network *Network,
 	laddr *snet.UDPAddr,
 	cfg net.ListenConfig,
-) (utils.Destructor, error) {
+) (networks.Destructor, error) {
 	tlsCfg := &tls.Config{
 		NextProtos:   []string{quicutil.SingleStreamProto},
 		Certificates: quicutil.MustGenerateSelfSignedCert(),
@@ -146,7 +146,7 @@ type reusableListener struct {
 // Close decreases the usage count of the listener.
 // The actual Close method is invoked when the usage count reaches zero.
 func (l *reusableListener) Close() error {
-	_, err := l.network.Pool.Delete(utils.PoolKey(SCIONSingleStream, l.addr))
+	_, err := l.network.Pool.Delete(networks.PoolKey(SCIONSingleStream, l.addr))
 	return err
 }
 
@@ -179,7 +179,7 @@ func listenQUIC(
 	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
 
-	sd, err := utils.Host().SCIONDConn(laddr.IA)
+	sd, err := networks.SCIONDConn(laddr.IA)
 	if err != nil {
 		network.Logger().Error("failed to connect to SCIOND", zap.Error(err))
 		return nil, err

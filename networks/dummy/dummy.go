@@ -24,7 +24,7 @@ import (
 	"github.com/scionproto/scion/pkg/snet"
 	"go.uber.org/zap"
 
-	"github.com/scionproto-contrib/http-proxy/networks/utils"
+	"github.com/scionproto-contrib/http-proxy/networks"
 )
 
 const (
@@ -34,7 +34,7 @@ const (
 
 // Network is a custom network that allows listening on SCION addresses.
 type Network struct {
-	Pool utils.Pool[string, utils.Reusable]
+	Pool networks.Pool[string, networks.Reusable]
 
 	logger   atomic.Pointer[zap.Logger]
 	listener listener
@@ -47,10 +47,10 @@ type listener interface {
 	listen(ctx context.Context,
 		network *Network,
 		laddr *snet.UDPAddr,
-		cfg net.ListenConfig) (utils.Destructor, error)
+		cfg net.ListenConfig) (networks.Destructor, error)
 }
 
-func NewNetwork(pool utils.Pool[string, utils.Reusable]) *Network {
+func NewNetwork(pool networks.Pool[string, networks.Reusable]) *Network {
 	return &Network{
 		Pool:     pool,
 		listener: &listenerSCIONDummy{},
@@ -90,8 +90,8 @@ func (n *Network) Listen(
 	if laddr.Host.Port == 0 {
 		return nil, fmt.Errorf("wildcard port not supported: %s", address)
 	}
-	key := utils.PoolKey(network, laddr.String())
-	c, loaded, err := n.Pool.LoadOrNew(key, func() (utils.Destructor, error) {
+	key := networks.PoolKey(network, laddr.String())
+	c, loaded, err := n.Pool.LoadOrNew(key, func() (networks.Destructor, error) {
 		return n.listener.listen(ctx, n, laddr, cfg)
 	})
 	if err != nil {
@@ -109,7 +109,7 @@ func (l *listenerSCIONDummy) listen(
 	network *Network,
 	laddr *snet.UDPAddr,
 	cfg net.ListenConfig,
-) (utils.Destructor, error) {
+) (networks.Destructor, error) {
 	return &dummyListener{
 		address: laddr,
 		network: network,
@@ -156,7 +156,7 @@ func (l *dummyListener) Accept() (net.Conn, error) {
 }
 
 func (l *dummyListener) Close() error {
-	_, err := l.network.Pool.Delete(utils.PoolKey(SCIONDummy, l.address.String()))
+	_, err := l.network.Pool.Delete(networks.PoolKey(SCIONDummy, l.address.String()))
 	return err
 }
 

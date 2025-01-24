@@ -25,7 +25,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
 
-	"github.com/scionproto-contrib/http-proxy/networks/utils"
+	"github.com/scionproto-contrib/http-proxy/networks"
 )
 
 // TestNetwork_Listen tests the Listen method of the Network struct.
@@ -46,7 +46,7 @@ func TestNetwork_Listen(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			network := &Network{
-				Pool:     newMockPool[string, utils.Reusable](),
+				Pool:     newMockPool[string, networks.Reusable](),
 				listener: &mockListener{},
 			}
 			network.SetLogger(zaptest.NewLogger(t, zaptest.Level(zap.DebugLevel)))
@@ -72,7 +72,7 @@ func (l *mockListener) listen(
 	network *Network,
 	laddr *snet.UDPAddr,
 	cfg net.ListenConfig,
-) (utils.Destructor, error) {
+) (networks.Destructor, error) {
 	return &mockReusable{}, nil
 }
 
@@ -95,7 +95,7 @@ func newMockPool[K comparable, V any]() *mockPool[K, V] {
 	}
 }
 
-func (mp *mockPool[K, V]) LoadOrNew(key K, construct func() (utils.Destructor, error)) (V, bool, error) {
+func (mp *mockPool[K, V]) LoadOrNew(key K, construct func() (networks.Destructor, error)) (V, bool, error) {
 	mp.mu.Lock()
 	defer mp.mu.Unlock()
 

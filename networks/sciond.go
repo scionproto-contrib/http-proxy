@@ -11,14 +11,13 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package utils
+package networks
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
 	"os"
-	"sync"
 	"time"
 
 	"github.com/scionproto/scion/pkg/addr"
@@ -30,52 +29,25 @@ const (
 	initTimeout = 1 * time.Second
 )
 
-var singletonHostContext hostContext
-var initOnce sync.Once
-
-// hostContext contains the information needed to connect to the host's local SCION stack,
-// i.e. the connection to sciond.
-type hostContext struct {
-	env       env.SCION
-	sciondMap map[addr.IA]daemon.Connector
-}
-
-// host initialises and returns the singleton hostContext.
-func Host() *hostContext {
-	initOnce.Do(mustInitHostContext)
-	return &singletonHostContext
-}
-
-func mustInitHostContext() {
-	sciondMap := make(map[addr.IA]daemon.Connector)
+// SCIONDConn returns a new connection to the SCION daemon of the specified ISD-AS,
+// using the SCION environment file.
+func SCIONDConn(ia addr.IA) (daemon.Connector, error) {
 	env, err := loadEnv()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error loading SCION environement: %v\n", err)
 		os.Exit(1)
 	}
-	singletonHostContext = hostContext{
-		sciondMap: sciondMap,
-		env:       env,
-	}
-}
-
-func (hc *hostContext) SCIONDConn(ia addr.IA) (daemon.Connector, error) {
-	conn, ok := hc.sciondMap[ia]
-	if !ok {
-		ctx, cancel := context.WithTimeout(context.Background(), initTimeout)
-		defer cancel()
-		var err error
-		conn, err = hc.findSciond(ctx, ia)
-		if err != nil {
-			return nil, err
-		}
-		hc.sciondMap[ia] = conn
+	ctx, cancel := context.WithTimeout(context.Background(), initTimeout)
+	defer cancel()
+	conn, err := findSciond(ctx, env, ia)
+	if err != nil {
+		return nil, err
 	}
 	return conn, nil
 }
 
-func (hc *hostContext) findSciond(ctx context.Context, ia addr.IA) (daemon.Connector, error) {
-	as, ok := hc.env.ASes[ia]
+func findSciond(ctx context.Context, env env.SCION, ia addr.IA) (daemon.Connector, error) {
+	as, ok := env.ASes[ia]
 	if !ok {
 		return nil, fmt.Errorf("AS %v not found in environment", ia)
 	}
