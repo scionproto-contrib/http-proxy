@@ -158,23 +158,12 @@ func (l *reusableListener) Destruct() error {
 	return l.SingleStreamListener.Close()
 }
 
-type quicListener struct {
-	*quic.Listener
-	conn net.PacketConn
-}
-
-func (l *quicListener) Close() error {
-	err := l.Listener.Close()
-	l.conn.Close()
-	return err
-}
-
 func listenQUIC(
 	ctx context.Context,
 	network *Network,
 	laddr *snet.UDPAddr,
 	tlsConf *tls.Config,
-	quicConfig *quic.Config) (pan.QUICListener, error) {
+	quicConfig *quic.Config) (*pan.QUICListener, error) {
 
 	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
@@ -201,7 +190,7 @@ func listenQUIC(
 		conn.Close()
 		return nil, err
 	}
-	return &quicListener{Listener: listener, conn: conn}, nil
+	return &pan.QUICListener{Listener: listener, Conn: conn}, nil
 }
 
 // ignoreSCMP is a SCMP handler that ignores all SCMP messages. This is required

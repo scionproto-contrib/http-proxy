@@ -8,6 +8,7 @@ require (
 	github.com/gorilla/securecookie v1.1.2
 	github.com/gorilla/sessions v1.2.2
 	github.com/netsec-ethz/scion-apps v0.5.1-0.20241007105241-3f7a7dd6e9c0
+	github.com/quic-go/quic-go v0.44.0
 	github.com/scionproto/scion v0.12.1-0.20241223103250-0b42cbc42486
 	github.com/stretchr/testify v1.9.0
 	go.uber.org/zap v1.27.0
@@ -46,7 +47,6 @@ require (
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.53.0 // indirect
 	github.com/prometheus/procfs v0.14.0 // indirect
-	github.com/quic-go/quic-go v0.44.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/uber/jaeger-client-go v2.30.0+incompatible // indirect
 	github.com/uber/jaeger-lib v2.4.1+incompatible // indirect
