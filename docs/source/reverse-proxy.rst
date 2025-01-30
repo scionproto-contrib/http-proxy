@@ -3,7 +3,20 @@ SCION HTTP Reverse Proxy
 
 The SCION HTTP Reverse Proxy makes HTTP(S) resources available via SCION by configuring a reverse proxy in front of them.
 It is implemented as a Caddy plugin, and can be used with any compatible Caddy server version.
+
 If you are looking for the forward proxy, see :doc:`Forward Proxy <forward-proxy>`.
+
+Overview
+--------
+
+The caddy plugin currently supports two types of network listeners:
+
+- HTTP1.1/HTTP2.0 over SCION: The plugin can listen for incoming HTTP1.1/HTTP2.0 requests over a single-stream SCION connection. 
+  
+  This enables SCION resources to be accessed by the :doc:`Forward Proxy <forward-proxy>`.
+  More concretely, if you intend to make your resources available for the current `SCION Browser Extension <https://scion-browser-extension.readthedocs.io/en/latest/index.html>`_ you can use this mode.
+
+- HTTP3 over SCION: The plugin supports a native HTTP3 listener over SCION to serve resources to clients that support HTTP3. Note that HTTP3 is not supported by the SCION Browser Extension.
 
 Prerequisites
 -------------
@@ -11,21 +24,36 @@ Prerequisites
 
 Installation
 ------------
-A Debian package will be made available soon.
-In the meantime, you can download the `latest release <https://github.com/scionproto-contrib/http-proxy/releases>`_ available or build the plugin from source as follows
 
-- Download the source code from the `SCION HTTP Proxy repository <https://github.com/scionproto-contrib/http-proxy>`_.
-- Build the plugin by running the following command in the root directory of the repository:
+You can install the SCION HTTP Reverse Proxy plugin either building from source or adding the plugin to an existing Caddy installation.
+
+Add plugin to existing Caddy installation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you have an existing Caddy installation, you can add the SCION HTTP Proxy plugin to it. The plugin contains both the reverse proxy (supporting the 3 flavors of HTTP) and the forward proxy.
+Please visit the `Caddy SCION plugin documentation <https://caddyserver.com/docs/modules/scion>`_ for more information on how to extend Caddy with SCION.
+
+Build for Linux
+~~~~~~~~~~~~~~~
+
+You can build the caddy server containing the SCION plugin from source as follows:
+
+- Download the source code from the `Caddy SCION repository <https://github.com/scionproto-contrib/caddy-scion>`_.
+- Depending on what protocol the reverse proxy should support, you can build the binary with the following commands:
+  
+  - Native HTTP3 support:
 
     .. code-block:: bash
 
-        go build -o scion-caddy caddy/main.go
+        go build -o ./build/scion-caddy-native ./cmd/scion-caddy-native
+  
 
-- or (if you only want to build the forward proxy):
+  - HTTP1.1, HTTP2.0 and native HTTP3 over SCION:
 
     .. code-block:: bash
 
-        go build -o scion-caddy reverse/main.go
+        go build -o ./build/scion-caddy-reverse ./cmd/scion-caddy-reverse
+  
 
 Then, you can follow the steps below to install the plugin:
 
@@ -38,63 +66,42 @@ Then, you can follow the steps below to install the plugin:
 
 - Add a data directory for the plugin to store its data:
 
-    .. code-block:: bash
+- Optionally you can create a systemd service and enable it. You can use the example service file ``scion-caddy.service`` in the `examples <https://github.com/scionproto-contrib/http-proxy/tree/main/_examples>`__.
 
-        sudo mkdir -p /usr/share/scion/caddy-scion
-        sudo chown -R $USER:$USER /usr/share/scion
-
-- Install the systemd service file by copying it to ``/etc/systemd/system`` and enabling it.
-  The reverse proxy can work in two modes, `layer-5 <#layer-5-reverse-proxy>`__ or `layer-4 (passthrough) <#layer-4-reverse-proxy-passthrough>`__.
-  For example, to configure the layer-4 reverse proxy passthrough mode, you can take as a reference the file ``scion-caddy-passthrough-proxy.service`` in the `examples <https://github.com/scionproto-contrib/http-proxy/tree/main/_examples>`__ folder.
-
-    .. code-block:: bash
-
-        sudo cp scion-caddy-passthrough-proxy.service /etc/systemd/system/
-        sudo systemctl enable scion-caddy-passthrough-proxy.service
+- The reverse proxy can work in two modes, `layer-5 <#layer-5-reverse-proxy>`__ or `layer-4 (passthrough) <#layer-4-reverse-proxy-passthrough>`__. 
+  Check the corresponding sections to configure the reverse proxy accordingly.
   
-- Following the layer-4 reverse proxy configuration example, you can use the JSON configuration file ``caddy-scion-passthrough-scion.json`` in the `examples <https://github.com/scionproto-contrib/http-proxy/tree/main/_examples>`__ folder.
-  Modify the JSON configuration file to point to the correct paths and domains for your deployment.
 
-- If you are looking for a layer-5 reverse proxy configuration, you can take as reference the JSON configuration file ``reverse.json`` in the same folder, also applying the necessary modifications.
+Build for Windows
+~~~~~~~~~~~~~~~~~
 
-- Start the service:
+.. note::
+  Experimental option. The SCION HTTP reverse proxy has not been tested on Windows yet.
+
+You can build the caddy server containing the SCION plugin from source as follows:
+
+- Download the source code from the `Caddy SCION repository <https://github.com/scionproto-contrib/caddy-scion>`_.
+- Depending on what protocol the reverse proxy should support, you can build the binary with the following commands:
+
+  - Native HTTP3 support:
 
     .. code-block:: bash
 
-        sudo systemctl start scion-caddy-passthrough-proxy.service
+        GOOS=windows GOARCH=amd64 go build -o ./build/scion-caddy-native ./cmd/scion-caddy-native
+  
 
-Build for Windows and install
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  - HTTP1.1, HTTP2.0 and native HTTP3 over SCION:
 
-At the moment, you can download the `latest release <https://github.com/scionproto-contrib/http-proxy/releases>`_ available or build the plugin from source as follows:
+    .. code-block:: bash
 
-- Download the source code from the `SCION HTTP Proxy repository <https://github.com/scionproto-contrib/http-proxy>`_.
-- Build the plugin by running the following command in the root directory of the repository:
+        GOOS=windows GOARCH=amd64 go build -o ./build/scion-caddy-reverse ./cmd/scion-caddy-reverse
 
-  .. code-block:: bash
-
-    make build-windows scion-caddy
-
-- or (if you only want to build the reverse proxy)
-
-  .. code-block:: bash
-
-    make build-windows scion-caddy-reverse
-
-Then, you can follow the steps below to install the plugin:
+Then, you follow the steps below:
 
 - Ensure that you are running the scion-endhost stack as described in the `SCION documentation <https://docs.scion.org/projects/scion-applications/en/latest/applications/access.html>`_.
 
-- Add a data directory for the plugin to store its data (in a PowerShell terminal):
-
-  .. code-block:: bash
-
-    mkdir -p AppData\\scion\\caddy-scion
-
-- The reverse proxy can work in two modes, `layer-5 <#layer-5-reverse-proxy>`__ or `layer-4 (passthrough) <#layer-4-reverse-proxy-passthrough>`__.
-  For example, to configure the layer-4 reverse proxy passthrough mode, you can use the JSON configuration file ``caddy-scion-passthrough-scion.json`` in the `examples <https://github.com/scionproto-contrib/http-proxy/tree/main/_examples>`__ folder.
-  Next, modify the JSON configuration file to point to the correct paths and domains for the plugin data directory. 
-  Remember to **replace** ``/usr/share/scion/caddy-scion`` with ``C:\\Users\\<username>\\AppData\\scion\\caddy-scion``.
+- The reverse proxy can work in two modes, `layer-5 <#layer-5-reverse-proxy>`__ or `layer-4 (passthrough) <#layer-4-reverse-proxy-passthrough>`__. 
+  Check the corresponding sections to configure the reverse proxy accordingly.
 
 - Run the binary with the configuration file:
 
@@ -105,24 +112,50 @@ Then, you can follow the steps below to install the plugin:
 .. warning::
   The SCION endhost stack is not officially supported on Windows, but it can be built and run with some limitations.
   Mainly, the dispatcher is not supported on Windows, but you can run SCION applications in environments that do not require the dispatcher.
-  This is applicable if your network provider runs SCION version > 0.11.0, available from the `Releases <https://github.com/scionproto/scion/releases>`_.
+  This is applicable if your network provider runs SCION version >= 0.12.0, available from the `Releases <https://github.com/scionproto/scion/releases>`_.
 
 Configuration
 -------------
 The SCION HTTP Reverse Proxy is configured via the Caddy JSON config. The location of the JSON config is specified in the systemd service file or when running the binary via the ``-conf`` flag.
 One can enable two modes of operation: layer-5 reverse proxy and layer-4 reverse proxy (passthrough) by configuring the Caddy JSON file accordingly.
 
-.. _reverse-proxy-figure:
-.. image:: img/https_combinations.png
-    :alt: SCION HTTP Reverse Proxy Diagram
-    :align: center
+ISD-AS environment
+~~~~~~~~~~~~~~~~~~
+The SCION HTTP Reverse Proxy can be configured to serve resources for different ISD-ASes. Those are configured in ``/etc/scion/environment.json`` file.
+You can specify a different location by setting the ``SCION_ENV_PATH`` environment variable. The file format is as follows:
+
+.. code-block:: json
+
+  {
+      "ases": {
+          "<ISD-AS>": {
+              "daemon_address": "<IP>:<Port>"
+          },
+          "<ISD-AS>": {
+              "daemon_address": "<IP>:<Port>"
+          }
+      }
+  }
+
+
 
 Layer-5 Reverse Proxy
 ~~~~~~~~~~~~~~~~~~~~~
 The SCION HTTP Reverse Proxy can act as a layer-5 reverse proxy, terminating the TLS connection and forwarding the request to the backend server.
-In this case, the reverse proxy must provide the expected certificate for the specified domain. It will afterwards forward the HTTP request (using whatever version of HTTP supported by the backend server) to the backend server.
+In this case, the reverse proxy must provide the expected certificate for the specified domain. 
+Afterwards, it will forward the HTTP request to the backend server.
 
-One can follow the example in the `examples <https://github.com/scionproto-contrib/http-proxy/tree/main/_examples/reverse.json>`__ to configure the reverse proxy to serve specific domains in this mode.
+The plugin configuration for caddy is extended with:
+
+- ``scion module`` <https://caddyserver.com/docs/modules/scion>`_
+- SCION network listener configuration, which is used to specify the SCION address and port to listen on, we extend with the following network names:
+
+  - ``scion``: The SCION network listener for native HTTP3 over SCION.
+  - ``scion+single-stream``: The SCION network listener for HTTP1.1/HTTP2.0 over SCION.
+
+The address follows the `network address convention <https://caddyserver.com/docs/conventions#network-addresses>`_ for Caddy, e.g., ``scion/[1-ff00:0:112,127.0.0.1]:8443`` or ``scion+single-stream/[1-ff00:0:112,127.0.0.1]:7443``.
+
+One can follow the example in `examples <https://github.com/scionproto-contrib/http-proxy/tree/main/_examples/reverse.json>`__ to configure the reverse proxy to serve specific domains in this mode.
 For more information on how to configure Caddy, see the `Caddy documentation <https://caddyserver.com/docs/json/apps/http/>`_.
 
 Layer-4 Reverse Proxy (Passthrough)
@@ -132,5 +165,27 @@ In this case, the reverse proxy will not terminate the TLS connection, but will 
 
 This feature is enabled via the non-standard layer-4 module (see `Caddy layer-4 documentation <https://caddyserver.com/docs/json/apps/layer4>`_).
 
-One can follow the example in the `examples <https://github.com/scionproto-contrib/http-proxy/tree/main/_examples/caddy-scion-passthrough-scion.json.json>`__ to configure the reverse proxy to serve specific domains in this mode.
+The plugin configuration for caddy is extended with:
+
+- SCION network listener configuration, which is used to specify the SCION address and port to listen on, we extend with the following network names:
+
+  - ``scion+single-stream``: The SCION network listener for single-stream connection over SCION. 
+
+One can follow the example in the `examples <https://github.com/scionproto-contrib/http-proxy/tree/main/_examples/passthrough_scionlab.json>`__ to configure the reverse proxy to serve specific domains in this mode.
 For more information on how to configure Caddy, see the `Caddy layer-4 documentation <https://caddyserver.com/docs/json/apps/layer4>`_.
+
+.. note::
+  Layer-4 reverse proxy for HTTP3 clients has not been tested yet. 
+  One may try to use the "scion" network listener with the layer-4 module to achieve this, especially in combination with ``layer4.matchers.quic``.
+  For more information you can check `Caddy layer-4 github repo <https://github.com/mholt/caddy-l4?tab=readme-ov-file#introduction>`_.
+
+Forward Proxy and Reverse Proxy ecosystem
+-----------------------------------------
+
+The SCION HTTP Reverse Proxy can be used in combination with the `SCION Forward Proxy <forward-proxy>` to provide a SCION browsing experience.
+The figure below shows the enabled ecosystem.
+
+.. _reverse-proxy-figure:
+.. image:: img/https_combinations.png
+    :alt: SCION HTTP Reverse Proxy Diagram
+    :align: center
