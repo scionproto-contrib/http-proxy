@@ -3,7 +3,8 @@
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
 This project uses [pre-commit](https://pre-commit.com/#quick-start) hooks.
 
-Repository for SCION-related Caddy modules for implementing an HTTP(s) proxy for SCION.
+This repository contains modules that support an HTTP(S) proxy for SCION. One can build their own Go implementation or use existing
+frameworks, e.g., [Caddy server to build upon](#caddy-plugins).
 
 ## Caddy plugins
 
