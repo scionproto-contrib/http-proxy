@@ -64,8 +64,6 @@ Then, you can follow the steps below to install the plugin:
 
         sudo setcap cap_net_bind_service=+ep /usr/local/bin/scion-caddy
 
-- Add a data directory for the plugin to store its data:
-
 - Optionally you can create a systemd service and enable it. You can use the example service file ``scion-caddy.service`` in the `examples <https://github.com/scionproto-contrib/http-proxy/tree/main/_examples>`__.
 
 - The reverse proxy can work in two modes, `layer-5 <#layer-5-reverse-proxy>`__ or `layer-4 (passthrough) <#layer-4-reverse-proxy-passthrough>`__. 
