@@ -8,7 +8,7 @@ require (
 	github.com/gorilla/securecookie v1.1.2
 	github.com/gorilla/sessions v1.2.2
 	github.com/netsec-ethz/scion-apps v0.5.1-0.20250203095105-f70181af6440
-	github.com/quic-go/quic-go v0.44.0
+	github.com/quic-go/quic-go v0.48.2
 	github.com/scionproto/scion v0.12.1-0.20241223103250-0b42cbc42486
 	github.com/stretchr/testify v1.9.0
 	go.uber.org/zap v1.27.0
