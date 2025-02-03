@@ -96,7 +96,7 @@ func TestMetricsHandler(t *testing.T) {
 			require.NoError(t, err)
 
 			rr := httptest.NewRecorder()
-			metricsHandler.ServeHTTP(rr, req)
+			err = metricsHandler.ServeHTTP(rr, req)
 			require.NoError(t, err)
 
 			expectedCode := http.StatusOK

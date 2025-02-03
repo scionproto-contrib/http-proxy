@@ -500,7 +500,7 @@ func (s *testServer) start() {
 			http.NotFound(w, r)
 			return
 		}
-		w.Write(content)
+		_, _ = w.Write(content)
 	})
 
 	server := &http.Server{
@@ -571,11 +571,19 @@ func TestMain(m *testing.M) {
 	if err := secureForwardProxy.proxy.Initialize(); err != nil {
 		log.Fatal(err)
 	}
-	defer secureForwardProxy.proxy.Cleanup()
+	defer func() {
+		if err := secureForwardProxy.proxy.Cleanup(); err != nil {
+			log.Fatal(err)
+		}
+	}()
 	if err := insecureForwardProxy.proxy.Initialize(); err != nil {
 		log.Fatal(err)
 	}
-	defer insecureForwardProxy.proxy.Cleanup()
+	defer func() {
+		if err := insecureForwardProxy.proxy.Cleanup(); err != nil {
+			log.Fatal(err)
+		}
+	}()
 
 	// Load contents for test servers
 	secureForwardProxy.loadContents()
