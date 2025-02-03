@@ -136,7 +136,7 @@ func (l *listenerSCION) listen(
 }
 
 // reusableListener allows reusing the same quicutil.SingleStreamListener.
-// It works in conjunction with a pool implementation to manage usage.
+// It may work in conjunction with a pool implementation to manage usage.
 type reusableListener struct {
 	*quicutil.SingleStreamListener
 	addr    string

@@ -32,14 +32,6 @@ const (
 	SCIONDummy = "scion+dummy"
 )
 
-// Network is a custom network that allows listening on SCION addresses.
-type Network struct {
-	Pool networks.Pool[string, networks.Reusable]
-
-	logger   atomic.Pointer[zap.Logger]
-	listener listener
-}
-
 // listener defines an interface for creating a QUIC listener.
 // It provides a method to start listening for incoming QUIC connections.
 // This interface is used to allow for testing.
@@ -48,6 +40,14 @@ type listener interface {
 		network *Network,
 		laddr *snet.UDPAddr,
 		cfg net.ListenConfig) (networks.Destructor, error)
+}
+
+// Network is a custom network that allows listening on SCION addresses.
+type Network struct {
+	Pool networks.Pool[string, networks.Reusable]
+
+	logger   atomic.Pointer[zap.Logger]
+	listener listener
 }
 
 func NewNetwork(pool networks.Pool[string, networks.Reusable]) *Network {
@@ -116,8 +116,9 @@ func (l *listenerSCIONDummy) listen(
 	}, nil
 }
 
-// blockedListener is a net.Listener that will never accept a connection. It
-// blocks until the underlying connection is closed.
+// dummyListener is a net.Listener that will never accept a connection.
+// It is used to fake a listener for a SCION address.
+// It may work in conjunction with a pool implementation to manage usage.
 type dummyListener struct {
 	address *snet.UDPAddr
 	network *Network

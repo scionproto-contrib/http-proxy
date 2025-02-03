@@ -11,7 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package singlestream
+package dummy
 
 import (
 	"context"
@@ -35,11 +35,12 @@ func TestNetwork_Listen(t *testing.T) {
 		address   string
 		expectErr bool
 	}{
-		{"Invalid network", "tcp", "[1-ff00:0:110,127.0.0.1]:12345", true},
-		{"Valid SCIONSingleStream IPv4 network and address", SCIONSingleStream, "[1-ff00:0:110,127.0.0.1]:12345", false},
-		{"Valid SCIONSingleStream any IPv4 network and port", SCIONSingleStream, "[1-ff00:0:110,0.0.0.0]:12345", false},
-		{"Valid SCIONSingleStream any IPv6 network and port", SCIONSingleStream, "[1-ff00:0:110,::]:12345", false},
-		{"Invalid SCIONSingleStream address", SCIONSingleStream, "invalid-address", true},
+		{"Invalid network", "not-SCION", "[1-ff00:0:110,127.0.0.1]:12345", true},
+		{"Valid SCION IPv4 network and address", SCION, "[1-ff00:0:110,127.0.0.1]:12345", false},
+		{"Valid SCION any IPv4 network and port", SCION, "[1-ff00:0:110,0.0.0.0]:12345", false},
+		{"Valid SCION any IPv6 network and port", SCION, "[1-ff00:0:110,::]:12345", false},
+		{"Valid SCION+dummy IPv4 network and address", SCIONDummy, "[1-ff00:0:110,127.0.0.1]:12345", false},
+		{"Invalid SCION+UDP address", SCION, "invalid-address", true},
 	}
 
 	for _, tt := range tests {

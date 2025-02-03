@@ -44,14 +44,14 @@ type listener interface {
 
 // Network is a custom network that allows to listen on SCION addresses.
 type Network struct {
-	Pool              networks.Pool[string, *conn]
+	Pool              networks.Pool[string, networks.Reusable]
 	PacketConnMetrics snet.SCIONPacketConnMetrics
 
 	logger   atomic.Pointer[zap.Logger]
 	listener listener
 }
 
-func NewNetwork(pool networks.Pool[string, *conn]) *Network {
+func NewNetwork(pool networks.Pool[string, networks.Reusable]) *Network {
 	return &Network{
 		Pool:     pool,
 		listener: &listenerSCIONUDP{},
