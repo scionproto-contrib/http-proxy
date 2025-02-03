@@ -23,13 +23,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/caddyserver/caddy/v2/modules/caddyhttp"
 	"github.com/netsec-ethz/scion-apps/pkg/pan"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 
-	"github.com/scionassociation/caddy-scion/forward/session"
+	"github.com/scionproto-contrib/http-proxy/forward/session"
 )
 
 func TestMetricsHandler(t *testing.T) {
@@ -97,8 +96,7 @@ func TestMetricsHandler(t *testing.T) {
 			require.NoError(t, err)
 
 			rr := httptest.NewRecorder()
-			handler := caddyhttp.HandlerFunc(metricsHandler.ServeHTTP)
-			err = handler.ServeHTTP(rr, req)
+			err = metricsHandler.ServeHTTP(rr, req)
 			require.NoError(t, err)
 
 			expectedCode := http.StatusOK
@@ -119,7 +117,9 @@ func (dp mockDialerPool) Stop() error  { return nil }
 func (dp mockDialerPool) GetDialer(sessionData session.SessionData, useScion bool) (PANDialer, error) {
 	return dp.dialer, nil
 }
-func (dp mockDialerPool) ServeHTTP(w http.ResponseWriter, r *http.Request) error { return nil }
+func (dp mockDialerPool) ServeHTTP(w http.ResponseWriter, r *http.Request) error {
+	return nil
+}
 
 type mockDialer struct {
 	policy    pan.Policy

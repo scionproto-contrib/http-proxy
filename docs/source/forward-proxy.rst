@@ -9,29 +9,41 @@ Prerequisites
 -------------
 - A ``SCION-enabled host`` in a ``SCION-enabled network`` (see `Access and Host Configuration <https://docs.scion.org/projects/scion-applications/en/latest/applications/access.html>`_).
 
-Build for Linux and install
----------------------------
-A Debian package will be made available soon.
-In the meantime, you can download the `latest release <https://github.com/scionproto-contrib/http-proxy/releases>`_ available or build the plugin from source as follows:
+Installation
+------------
 
-- Download the source code from the `SCION HTTP Proxy repository <https://github.com/scionproto-contrib/http-proxy>`_.
+You can install the SCION HTTP Reverse Proxy plugin either building from source or adding the plugin to an existing Caddy installation.
+
+Add plugin to existing Caddy installation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you have an existing Caddy installation, you can add the SCION HTTP Proxy plugin to it. The plugin contains both the reverse proxy (supporting the 3 flavors of HTTP) and the forward proxy.
+Please visit the `Caddy SCION plugin documentation <https://caddyserver.com/docs/modules/scion>`_ for more information on how to extend Caddy with SCION.
+
+Build for Linux
+---------------
+
+You can build the caddy server containing the SCION plugin from source as follows:
+
+- Download the source code from the `Caddy SCION repository <https://github.com/scionproto-contrib/caddy-scion>`_.
 - Build the plugin by running the following command in the root directory of the repository:
 
   .. code-block:: bash
 
-    make build scion-caddy
+    go build -o ./build/scion-caddy-forward./cmd/scion-caddy-forward
 
-- or (if you only want to build the forward proxy)
+- or (if you only want to build the forward and reverse proxy)
 
   .. code-block:: bash
 
-    make build scion-caddy-forward
+    go build -o ./build/scion-caddy ./cmd/scion-caddy
 
 Then, you can follow the steps below to install the plugin:
 
 - Ensure that you are running the scion-endhost stack as described in the `SCION documentation <https://docs.scion.org/projects/scion-applications/en/latest/applications/access.html>`_.
 
 - Copy the binary to ``/usr/local/bin`` or any other directory in your ``$PATH``.
+
 - Add a data directory for the plugin to store its data:
 
   .. code-block:: bash
@@ -39,40 +51,30 @@ Then, you can follow the steps below to install the plugin:
     sudo mkdir -p /usr/share/scion/caddy-scion
     sudo chown -R $USER:$USER /usr/share/scion
 
-- Install the systemd service file by copying it to ``/etc/systemd/system`` and enabling it (you can take as a reference the file ``scion-caddy-forward-proxy.service`` in the `examples <https://github.com/scionproto-contrib/http-proxy/tree/main/_examples>`__ folder):
-
-  .. code-block:: bash
-
-    sudo cp scion-caddy-forward-proxy.service /etc/systemd/system/
-    sudo systemctl enable scion-caddy-forward-proxy.service
+- Optionally you can create a systemd service and enable it. You can use the example service file ``scion-caddy.service`` in the `examples <https://github.com/scionproto-contrib/http-proxy/tree/main/_examples>`__.
   
-- You can use the ``scion-caddy-forward-proxy.json`` file in `latest realease <https://github.com/scionproto-contrib/http-proxy/releases>`_ or in `examples <https://github.com/scionproto-contrib/http-proxy/blob/main/_examples/scion-caddy-forward-proxy.json>`__ folder as a configuration file.
-  Move it to ``/etc/scion/`` or the path that you have configured in the systemd service file.
+- You can use the ``forward.json`` file in `examples <https://github.com/scionproto-contrib/http-proxy/blob/main/_examples/scion-caddy-forward-proxy.json>`__ folder as reference configuration file.
+  The configuration is passed using the ``-config`` flag when running the binary. If you created a service, move it to ``/etc/scion/`` or the path that you have configured in the systemd service file.
   
-- Start the service:
-
-  .. code-block:: bash
-
-    sudo systemctl start scion-caddy-forward-proxy.service
-
 - If you are running the **forward proxy as a local proxy**, please follow the localhost configuration `instructions <#running-the-scion-http-forward-proxy-locally>`_ to integrate it with your browser.
 
-Build for MacOS and install
----------------------------
-At the moment, you can download the `latest release <https://github.com/scionproto-contrib/http-proxy/releases>`_ available or build the plugin from source as follows:
+Build for MacOS
+---------------
 
-- Download the source code from the `SCION HTTP Proxy repository <https://github.com/scionproto-contrib/http-proxy>`_.
+You can build the caddy server containing the SCION plugin from source as follows:
+
+- Download the source code from the `Caddy SCION repository <https://github.com/scionproto-contrib/caddy-scion>`_.
 - Build the plugin by running the following command in the root directory of the repository:
 
   .. code-block:: bash
 
-    make build-macos scion-caddy
+    GOOS=darwin GOARCH=amd64 go build -o ./build/scion-caddy-forward./cmd/scion-caddy-forward
 
-- or (if you only want to build the forward proxy)
+- or (if you only want to build the forward and reverse proxy)
 
   .. code-block:: bash
 
-    make build-macos scion-caddy-forward
+    GOOS=darwin GOARCH=amd64 go build -o ./build/scion-caddy ./cmd/scion-caddy
 
 Then, you can follow the steps below to install the plugin:
 
@@ -91,7 +93,8 @@ Then, you can follow the steps below to install the plugin:
     sudo mkdir -p /usr/local/scion/caddy-scion
     sudo chown -R $USER /usr/local/scion
 
-- You can use the ``scion-caddy-forward-proxy.json`` file in `latest realease <https://github.com/scionproto-contrib/http-proxy/releases>`_ or in `examples <https://github.com/scionproto-contrib/http-proxy/blob/main/_examples/scion-caddy-forward-proxy.json>`__ folder as a configuration file.
+- You can use the ``forward.json`` file in `examples <https://github.com/scionproto-contrib/http-proxy/blob/main/_examples/scion-caddy-forward-proxy.json>`__ folder as reference configuration file.
+  The configuration is passed using the ``-config`` flag when running the binary.
   Next, modify the JSON configuration file to point to the correct paths for the plugin data directory. Mainly, **replace** ``/usr/share/scion/caddy-scion`` with ``/usr/local/scion/caddy-scion``.
 
 - Run the binary with the configuration file:
@@ -102,27 +105,27 @@ Then, you can follow the steps below to install the plugin:
 
 - If you are running the **forward proxy as a local proxy**, please follow the localhost configuration `instructions <#running-the-scion-http-forward-proxy-locally>`_ to integrate it with your browser.
 
+
+Build for Windows
+-----------------
+
 .. note::
-  Instructions to run the HTTP Forward Proxy on MacOS as launchd service will be provided in the future. Likewise, we will work on providing a Homebrew formula.
+  Experimental option. The SCION HTTP forward proxy has not been tested on Windows yet.
 
+You can build the caddy server containing the SCION plugin from source as follows:
 
-Build for Windows and install
------------------------------
-
-At the moment, you can download the `latest release <https://github.com/scionproto-contrib/http-proxy/releases>`_ available or build the plugin from source as follows:
-
-- Download the source code from the `SCION HTTP Proxy repository <https://github.com/scionproto-contrib/http-proxy>`_.
+- Download the source code from the `Caddy SCION repository <https://github.com/scionproto-contrib/caddy-scion>`_.
 - Build the plugin by running the following command in the root directory of the repository:
 
   .. code-block:: bash
 
-    make build-windows scion-caddy
+    GOOS=windows GOARCH=amd64 go build -o ./build/scion-caddy-forward./cmd/scion-caddy-forward
 
-- or (if you only want to build the forward proxy)
+- or (if you only want to build the forward and reverse proxy)
 
   .. code-block:: bash
 
-    make build-windows scion-caddy-forward
+    GOOS=windows GOARCH=amd64 go build -o ./build/scion-caddy ./cmd/scion-caddy
 
 Then, you can follow the steps below to install the plugin:
 
@@ -134,7 +137,8 @@ Then, you can follow the steps below to install the plugin:
 
     mkdir -p AppData\\scion\\caddy-scion
 
-- You can use the ``scion-caddy-forward-proxy.json`` file in `latest realease <https://github.com/scionproto-contrib/http-proxy/releases>`_ or in `examples <https://github.com/scionproto-contrib/http-proxy/blob/main/_examples/scion-caddy-forward-proxy.json>`__ folder as a configuration file.
+- You can use the ``forward.json`` file in `examples <https://github.com/scionproto-contrib/http-proxy/blob/main/_examples/scion-caddy-forward-proxy.json>`__ folder as reference configuration file.
+  The configuration is passed using the ``-config`` flag when running the binary.
   Next, modify the JSON configuration file to point to the correct paths for the plugin data directory. Mainly, **replace** ``/usr/share/scion/caddy-scion`` with ``C:\\Users\\<username>\\AppData\\scion\\caddy-scion``.
 
 - Run the binary with the configuration file:
@@ -202,8 +206,11 @@ The SCION HTTP Forward Proxy can be run as an in-network service out of the box.
 Nonetheless, the local network administrator must:
 
 - Implement a proper resolution for forward-proxy.scion to the IP address of the host running the SCION HTTP Forward Proxy.
+  
   - This can be done by adding an entry to the local DNS server or by adding an entry to the /etc/hosts file of all the hosts in the network via some orchestrator.
+
 - Disseminate the root certificate to all the hosts in the network.
+  
   - This can be done by adding the root certificate to the trust store of all the hosts in the network or by using a configuration management tool to distribute the certificate.
 
 .. note::
