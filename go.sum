@@ -90,6 +90,8 @@ github.com/ncruces/go-strftime v0.1.9 h1:bY0MQC28UADQmHmaF5dgpLmImcShSi2kHU9XLdh
 github.com/ncruces/go-strftime v0.1.9/go.mod h1:Fwc5htZGVVkseilnfgOVb9mKy6w1naJmn9CehxcKcls=
 github.com/netsec-ethz/rains v0.5.1-0.20240619143424-8e9ef27f2403 h1:Ve8YXv3K9Oxlo9c4aQBYXMwe7Dx0Khv5qytdM2qTsco=
 github.com/netsec-ethz/rains v0.5.1-0.20240619143424-8e9ef27f2403/go.mod h1:YD8WuBUbAoxhvU/keqHboGDpFna9FSvklLLzTZSF7SE=
+github.com/netsec-ethz/scion-apps v0.5.1-0.20250203095105-f70181af6440 h1:ILu/K0pNVdUhPQo3ZgjdWB4FOdXyGBYL2vkKIKDrlPo=
+github.com/netsec-ethz/scion-apps v0.5.1-0.20250203095105-f70181af6440/go.mod h1:ufM04a/r114pJPY50lFlZfYgvMVHcoLECnhRcxmgwzs=
 github.com/onsi/ginkgo/v2 v2.17.3 h1:oJcvKpIb7/8uLpDDtnQuf18xVnwKp8DTD7DQ6gTd/MU=
 github.com/onsi/ginkgo/v2 v2.17.3/go.mod h1:nP2DPOQoNsQmsVyv5rDA8JkXQoCs6goXIvr/PRJ1eCc=
 github.com/onsi/gomega v1.33.0 h1:snPCflnZrpMsy94p4lXVEkHo12lmPnc3vY5XBbreexE=

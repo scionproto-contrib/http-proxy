@@ -7,7 +7,7 @@ toolchain go1.22.10
 require (
 	github.com/gorilla/securecookie v1.1.2
 	github.com/gorilla/sessions v1.2.2
-	github.com/netsec-ethz/scion-apps v0.5.1-0.20241007105241-3f7a7dd6e9c0
+	github.com/netsec-ethz/scion-apps v0.5.1-0.20250203095105-f70181af6440
 	github.com/quic-go/quic-go v0.44.0
 	github.com/scionproto/scion v0.12.1-0.20241223103250-0b42cbc42486
 	github.com/stretchr/testify v1.9.0
@@ -71,5 +71,3 @@ require (
 	modernc.org/strutil v1.2.0 // indirect
 	modernc.org/token v1.1.0 // indirect
 )
-
-replace github.com/netsec-ethz/scion-apps => ../scion-apps
