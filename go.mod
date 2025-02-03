@@ -12,7 +12,7 @@ require (
 	github.com/scionproto/scion v0.12.1-0.20241223103250-0b42cbc42486
 	github.com/stretchr/testify v1.9.0
 	go.uber.org/zap v1.27.0
-	golang.org/x/net v0.31.0
+	golang.org/x/net v0.33.0
 )
 
 require (
