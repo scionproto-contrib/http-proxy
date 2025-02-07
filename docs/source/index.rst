@@ -2,7 +2,8 @@ SCION HTTP Proxy
 ================
 
 This repository contains technical documentation for the SCION HTTP Proxy.
-The source code for the SCION HTTP Proxy can be found on https://github.com/scionproto-contrib/http-proxy
+The source code for the SCION HTTP Proxy can be found on https://github.com/scionproto-contrib/http-proxy.
+We instantiate the SCION HTTP Proxy using the caddy plugins, which are available at `Caddy SCION <https://github.com/scionproto-contrib/caddy-scion>`_.
 
 This site contains documentation for setting up the SCION HTTP Proxy in both Forward and Reverse Proxy modes:
    - :doc:`Forward Proxy <forward-proxy>`

@@ -68,7 +68,7 @@ You can build the caddy server containing the SCION plugin from source as follow
 
   .. code-block:: bash
 
-    GOOS=darwin GOARCH=amd64 go build -o ./build/scion-caddy-forward./cmd/scion-caddy-forward
+    GOOS=darwin GOARCH=amd64 go build -o ./build/scion-caddy-forward ./cmd/scion-caddy-forward
 
 - or (if you only want to build the forward and reverse proxy)
 
@@ -152,7 +152,7 @@ Then, you can follow the steps below to install the plugin:
 .. warning::
   The SCION endhost stack is not officially supported on Windows, but it can be built and run with some limitations.
   Mainly, the dispatcher is not supported on Windows, but you can run SCION applications in environments that do not require the dispatcher.
-  This is applicable if your network provider runs SCION version > 0.11.0, available from the `Releases <https://github.com/scionproto/scion/releases>`_.
+  This is applicable if your network provider runs SCION version >= 0.12.0, available from the `Releases <https://github.com/scionproto/scion/releases>`_.
 
 
 Configuration

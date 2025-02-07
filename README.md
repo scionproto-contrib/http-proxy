@@ -6,6 +6,8 @@ This project uses [pre-commit](https://pre-commit.com/#quick-start) hooks.
 This repository contains modules that support an HTTP(S) proxy for SCION. One can build their own Go implementation or use existing
 frameworks, e.g., [Caddy server to build upon](#caddy-plugins).
 
+This project is supported by the [NGI Zero Entrust program](https://nlnet.nl/project/SCION-proxy/) established by [NLnet](https://nlnet.nl/).
+
 ## Caddy plugins
 
 The [caddy-scion](https://github.com/scionproto-contrib/caddy-scion) repository contains an instantiation of the HTTP proxy in the form of Caddy modules. 
