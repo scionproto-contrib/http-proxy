@@ -193,8 +193,8 @@ func (d *SCIONDialer) GetMetrics(filteredAddrs []string) (*DialerMetrics, error)
 		}
 
 		var ia pan.IA
-		if addr, ok := panConn.LocalAddr().(pan.UDPAddr); ok {
-			ia = addr.IA
+		if localAddr, ok := panConn.LocalAddr().(pan.UDPAddr); ok {
+			ia = localAddr.IA
 		}
 
 		path := panConn.GetPath()
