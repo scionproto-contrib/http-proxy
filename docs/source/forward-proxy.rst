@@ -12,13 +12,7 @@ Prerequisites
 Installation
 ------------
 
-You can install the SCION HTTP Reverse Proxy plugin either building from source or adding the plugin to an existing Caddy installation.
-
-Add plugin to existing Caddy installation
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-If you have an existing Caddy installation, you can add the SCION HTTP Proxy plugin to it. The plugin contains both the reverse proxy (supporting the 3 flavors of HTTP) and the forward proxy.
-Please visit the `Caddy SCION plugin documentation <https://caddyserver.com/docs/modules/scion>`_ for more information on how to extend Caddy with SCION.
+You can install the SCION HTTP Forward Proxy building it for the target platform or downloading the pre-built binary in `releases <https://github.com/scionproto-contrib/caddy-scion/releases>`_.
 
 Build for Linux
 ---------------
