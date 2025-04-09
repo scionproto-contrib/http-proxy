@@ -43,8 +43,9 @@ import (
 const (
 	hostsFile    = "/etc/hosts"
 	hostsComment = " # Line added by the SCION HTTP Forward Proxy"
+	hostName     = "forward-proxy.scion"
 	// TODO: make the address injectable via configuration
-	hostsEntry = "127.0.0.1\tforward-proxy.scion"
+	hostsEntry = "127.0.0.1\t" + hostName
 )
 
 // ResolveHandler defines an interface for handling HTTP requests related to
@@ -181,8 +182,8 @@ func (cp *CoreProxy) addHostsEntry() error {
 
 	lines := strings.Split(string(content), "\n")
 	for _, line := range lines {
-		if strings.Contains(line, hostsEntry) {
-			cp.logger.Debug("Hosts entry already exists", zap.String("entry", hostsEntry))
+		if !strings.HasPrefix(strings.TrimSpace(line), "#") && strings.Contains(line, hostName) {
+			cp.logger.Debug("Entry for host name already exists", zap.String("entry", line))
 			return nil
 		}
 	}
