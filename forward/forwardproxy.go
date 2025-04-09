@@ -24,6 +24,7 @@ import (
 	"net"
 	"net/http"
 	"net/textproto"
+	"os"
 	"strconv"
 	"strings"
 	"sync"
@@ -37,6 +38,14 @@ import (
 	"github.com/scionproto-contrib/http-proxy/forward/resolver"
 	"github.com/scionproto-contrib/http-proxy/forward/session"
 	"github.com/scionproto-contrib/http-proxy/forward/utils"
+)
+
+const (
+	hostsFile    = "/etc/hosts"
+	hostsComment = " # Line added by the SCION HTTP Forward Proxy"
+	hostName     = "forward-proxy.scion"
+	// TODO: make the address injectable via configuration
+	hostsEntry = "127.0.0.1\t" + hostName
 )
 
 // ResolveHandler defines an interface for handling HTTP requests related to
@@ -89,11 +98,18 @@ func (cp *CoreProxy) Initialize() error {
 	}
 	cp.metricsHandler = panpolicy.NewMetricsHandler(cp.policyManager, cp.logger.With(zap.String("component", "metrics-handler")))
 	cp.resolver = resolver.NewPANResolver(cp.logger.With(zap.String("component", "resolver")), cp.resolveTimeout)
+
+	if err := cp.addHostsEntry(); err != nil {
+		cp.logger.Warn("Failed to add entry to /etc/hosts file", zap.Error(err))
+	}
 	return nil
 }
 
 // Cleanup cleans up the core proxy logic.
 func (cp *CoreProxy) Cleanup() error {
+	if err := cp.removeHostsEntry(); err != nil {
+		cp.logger.Warn("Failed to remove entry from /etc/hosts file", zap.Error(err))
+	}
 	return cp.policyManager.Stop()
 }
 
@@ -156,6 +172,58 @@ func (cp *CoreProxy) HandleTunnelRequest(w http.ResponseWriter, r *http.Request)
 
 	cp.logger.Debug("Proxying.", zap.String("host", r.Host), zap.String("method", r.Method))
 	return cp.forwardRequest(w, r, dialer)
+}
+
+func (cp *CoreProxy) addHostsEntry() error {
+	content, err := os.ReadFile(hostsFile)
+	if err != nil {
+		return fmt.Errorf("failed to read hosts file: %w", err)
+	}
+
+	lines := strings.Split(string(content), "\n")
+	for _, line := range lines {
+		if !strings.HasPrefix(strings.TrimSpace(line), "#") && strings.Contains(line, hostName) {
+			cp.logger.Debug("Entry for host name already exists", zap.String("entry", line))
+			return nil
+		}
+	}
+
+	file, err := os.OpenFile(hostsFile, os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		return fmt.Errorf("failed to open hosts file for writing: %w", err)
+	}
+	defer file.Close()
+
+	entry := hostsComment + "\n" + hostsEntry + "\n"
+	if _, err := file.WriteString(entry); err != nil {
+		return fmt.Errorf("failed to write to hosts file: %w", err)
+	}
+
+	cp.logger.Info("Added entry to hosts file", zap.String("entry", hostsEntry))
+	return nil
+}
+
+func (cp *CoreProxy) removeHostsEntry() error {
+	content, err := os.ReadFile(hostsFile)
+	if err != nil {
+		return fmt.Errorf("failed to read hosts file: %w", err)
+	}
+
+	var newLines []string
+	lines := strings.Split(string(content), "\n")
+	for _, line := range lines {
+		if !strings.Contains(line, hostsEntry) && !strings.Contains(line, hostsComment) {
+			newLines = append(newLines, line)
+		}
+	}
+
+	err = os.WriteFile(hostsFile, []byte(strings.Join(newLines, "\n")), 0644)
+	if err != nil {
+		return fmt.Errorf("failed to write to hosts file: %w", err)
+	}
+
+	cp.logger.Info("Removed entry from hosts file", zap.String("entry", hostsEntry))
+	return nil
 }
 
 func (cp *CoreProxy) parseCookieFromProxyAuth(w http.ResponseWriter, r *http.Request) error {
