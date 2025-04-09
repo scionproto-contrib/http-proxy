@@ -18,6 +18,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -94,6 +95,14 @@ func (cp *CoreProxy) Initialize() error {
 // Cleanup cleans up the core proxy logic.
 func (cp *CoreProxy) Cleanup() error {
 	return cp.policyManager.Stop()
+}
+
+func (cp *CoreProxy) HandleHealthCheck(w http.ResponseWriter, r *http.Request) error {
+	if r.Method != http.MethodGet {
+		return utils.NewHandlerError(http.StatusMethodNotAllowed, errors.New("HTTP GET allowed only"))
+	}
+	w.WriteHeader(http.StatusOK)
+	return nil
 }
 
 func (cp *CoreProxy) HandlePolicyPath(w http.ResponseWriter, r *http.Request) error {
