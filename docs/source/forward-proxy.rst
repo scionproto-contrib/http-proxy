@@ -45,6 +45,18 @@ Then, you can follow the steps below to install the plugin:
     sudo mkdir -p /usr/share/scion/caddy-scion
     sudo chown -R $USER:$USER /usr/share/scion
 
+- Apply the necessary permissions to the binary:
+
+  .. code-block:: bash
+
+    chmod +x scion-caddy
+
+- If you intend to configure the proxy to run on well-known ports, add network capabilities to the binary:
+
+  .. code-block:: bash
+
+    sudo setcap 'cap_net_bind_service=+ep' scion-caddy
+
 - Optionally you can create a systemd service and enable it. You can use the example service file ``scion-caddy.service`` in the `examples <https://github.com/scionproto-contrib/http-proxy/tree/main/_examples>`__.
   
 - You can use the ``forward.json`` file in `examples <https://github.com/scionproto-contrib/http-proxy/blob/main/_examples/scion-caddy-forward-proxy.json>`__ folder as reference configuration file.
@@ -79,6 +91,12 @@ Then, you can follow the steps below to install the plugin:
   .. code-block:: bash
 
     chmod +x scion-caddy
+
+- If you intend to configure the proxy to run on well-known ports, add network capabilities to the binary:
+
+  .. code-block:: bash
+
+    sudo setcap 'cap_net_bind_service=+ep' scion-caddy
 
 - Add a data directory for the plugin to store its data:
 
@@ -177,7 +195,13 @@ For more information, see the `Caddy TLS configuration <https://caddyserver.com/
 Running the SCION HTTP Forward Proxy locally
 --------------------------------------------
 End users can run the SCION HTTP Forward Proxy locally by following the installation steps above.
-To ensure interoperability with their browser navigation, the user is required to add an entry to resolve the configured name for the forward proxy to the local IP address, e.g., by adding the following line to the ``/etc/hosts`` file:
+For smooth running experience, grant DAC capabilities to the binary:
+
+  .. code-block:: bash
+
+    sudo setcap cap_dac_override=+ep scion-caddy
+
+If you do not want to grant those privileges, you can run the binary without them but you will have to manually add the following line to your ``/etc/hosts`` before running the SCION HTTP Forward Proxy:
 
   .. code-block:: bash
 
