@@ -59,7 +59,7 @@ Then, you can follow the steps below to install the plugin:
 
         sudo setcap cap_net_bind_service=+ep /usr/local/bin/scion-caddy
 
-- Optionally you can create a systemd service and enable it. You can use the example service file ``scion-caddy.service`` in the `examples <https://github.com/scionproto-contrib/http-proxy/tree/main/_examples>`__.
+- Optionally you can create a systemd service and enable it. You can use the example service file ``scion-caddy.service`` in the `examples <https://github.com/scionproto-contrib/caddy-scion/tree/main/_examples>`__.
 
 - The reverse proxy can work in two modes, `layer-5 <#layer-5-reverse-proxy>`__ or `layer-4 (passthrough) <#layer-4-reverse-proxy-passthrough>`__. 
   Check the corresponding sections to configure the reverse proxy accordingly.
@@ -148,7 +148,7 @@ The plugin configuration for caddy is extended with:
 
 The address follows the `network address convention <https://caddyserver.com/docs/conventions#network-addresses>`_ for Caddy, e.g., ``scion/[1-ff00:0:112,127.0.0.1]:8443`` or ``scion+single-stream/[1-ff00:0:112,127.0.0.1]:7443``.
 
-One can follow the example in `examples <https://github.com/scionproto-contrib/http-proxy/tree/main/_examples/reverse.json>`__ to configure the reverse proxy to serve specific domains in this mode.
+One can follow the example in `examples <https://github.com/scionproto-contrib/caddy-scion/tree/main/_examples/reverse.json>`__ to configure the reverse proxy to serve specific domains in this mode.
 For more information on how to configure Caddy, see the `Caddy documentation <https://caddyserver.com/docs/json/apps/http/>`_.
 
 Layer-4 Reverse Proxy (Passthrough)
@@ -164,7 +164,7 @@ The plugin configuration for caddy is extended with:
 
   - ``scion+single-stream``: The SCION network listener for single-stream connection over SCION. 
 
-One can follow the example in the `examples <https://github.com/scionproto-contrib/http-proxy/tree/main/_examples/passthrough_scionlab.json>`__ to configure the reverse proxy to serve specific domains in this mode.
+One can follow the example in the `examples <https://github.com/scionproto-contrib/caddy-scion/tree/main/_examples/passthrough_scionlab.json>`__ to configure the reverse proxy to serve specific domains in this mode.
 For more information on how to configure Caddy, see the `Caddy layer-4 documentation <https://caddyserver.com/docs/json/apps/layer4>`_.
 
 .. note::
