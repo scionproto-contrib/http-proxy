@@ -151,6 +151,13 @@ The address follows the `network address convention <https://caddyserver.com/doc
 One can follow the example in `examples <https://github.com/scionproto-contrib/caddy-scion/tree/main/_examples/reverse.json>`__ to configure the reverse proxy to serve specific domains in this mode.
 For more information on how to configure Caddy, see the `Caddy documentation <https://caddyserver.com/docs/json/apps/http/>`_.
 
+It is important to configure the HTTP protocols consistently using the ``listen_protocols`` `option <https://caddyserver.com/docs/json/apps/http/servers/listen_protocols/>`_ in the Caddy JSON config.
+The possible combinations are (one can config one or serveral out of the following protocols for each listener):
+
+- ``[h3]`` for the ``scion`` listener.
+- ``[h1, h2]`` for the ``scion+single-stream`` listener.
+- ``[h1, h2, h3]`` for regular HTTP listeners.
+
 Layer-4 Reverse Proxy (Passthrough)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 If TLS termination option is not desirable due to the setup, the SCION HTTP Reverse Proxy can act as a layer-4 reverse proxy, forwarding the TCP connection to the backend server.
