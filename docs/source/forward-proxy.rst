@@ -207,16 +207,35 @@ If you do not want to grant those privileges, you can run the binary without the
 
     127.0.0.1 forward-proxy.scion
 
+The primary option for connecting to the SCION HTTP Forward Proxy is over HTTPS.
 Most browsers or HTTPS clients will not trust the self-signed certificate used by the SCION HTTP Forward Proxy by default. To avoid certificate warnings, the user must either:
   - Import the root certificate use into the browser trust store. If the user has followed the installation examples in the `examples <https://github.com/scionproto-contrib/http-proxy/tree/main/_examples>`__ folder, the root certificate can be found in the ``/usr/share/scion/caddy-scion`` directory.
     For MacOS, the root certificate can be found in the ``/usr/local/scion/caddy-scion`` directory. Please, use the Keychain Access application to import the root certificate.
   - Disable certificate verification in the browser or client, e.g.:
     - Run chrome with, ``chrome --ignore-certificate-errors``
-    - Use the ``--insecure`` and ``--proxy-insecure`` flag with curl, e.g.:
+    - Use the ``--proxy-insecure`` flag with curl, e.g.:
 
     .. code-block:: bash
 
-      curl --insecure --proxy-insecure -x http://forward-proxy.scion:8080 https://www.example.org
+      curl --proxy-insecure -x https://forward-proxy.scion:9443 https://www.example.org
+
+Alternatively, you can enable plain HTTP support for the SCION HTTP Forward Proxy by adding the following lines to the JSON configuration file:
+
+  .. code-block:: json
+
+    "apps": {
+        "http": {
+            "http_port": 9080,
+            "https_port": 9443,
+            "servers": {
+                "forward": {
+                    "logs": {},
+                    "metrics": {},
+                    "listen": [
+                        ":9080",
+                        ":9443"
+                    ],
+    ...
 
 Running the SCION HTTP Forward Proxy as in-network service
 ----------------------------------------------------------
