@@ -50,11 +50,10 @@ You can build the caddy server containing the SCION plugin from source as follow
 
     CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build go build -o ./build/scion-caddy-reverse ./cmd/scion-caddy-reverse
 
-  
  - Adapt the ``GOOS`` and ``GOARCH`` variables to your target platform, e.g., ``GOOS=windows GOARCH=amd64`` for Windows.
 
 Installation for Linux
-~~~~~~~~~~~~~~~~~~~~~~
+----------------------
 
 Then, you can follow the steps below to install the plugin:
 
@@ -71,7 +70,7 @@ Then, you can follow the steps below to install the plugin:
   Check the corresponding sections to configure the reverse proxy accordingly.
   
 Installation for Windows
-~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------
 
 Then, follow the steps below:
 
@@ -84,7 +83,7 @@ Then, follow the steps below:
 
   .. code-block:: bash
 
-  .\\scion-caddy run -conf \\path\\to\\your\\config.json
+    .\\scion-caddy run -conf \\path\\to\\your\\config.json
 
 .. warning::
   The SCION endhost stack is not officially supported on Windows, but it can be built and run with some limitations.
