@@ -42,6 +42,8 @@ Then, you can follow the steps below to install the plugin:
 
 - Ensure that you are running the scion-endhost stack as described in the `SCION documentation <https://docs.scion.org/projects/scion-applications/en/latest/applications/access.html>`_.
 
+- Apply the necessary permissions to the binary:
+
   .. code-block:: bash
 
       chmod +x scion-caddy
@@ -61,7 +63,6 @@ Then, you can follow the steps below to install the plugin:
     sudo mkdir -p /usr/share/scion/caddy-scion
     sudo chown -R $USER:$USER /usr/share/scion
 
-- Apply the necessary permissions to the binary:
 
 - Optionally you can create a systemd service and enable it. You can use the example service file ``scion-caddy.service`` in the `examples <https://github.com/scionproto-contrib/caddy-scion/tree/main/_examples>`__.
   
@@ -180,8 +181,14 @@ Add the following line on ``/etc/hosts`` before running the SCION HTTP Forward P
 The primary option for connecting to the SCION HTTP Forward Proxy is over HTTPS.
 Most browsers or HTTPS clients will not trust the self-signed certificate used by the SCION HTTP Forward Proxy by default. To avoid certificate warnings, the user must either:
 
-  - Import the root certificate use into the browser trust store. If the user has followed the installation examples in the `examples <https://github.com/scionproto-contrib/caddy-scion/tree/main/_examples>`__ folder, the root certificate can be found in the ``/usr/share/scion/caddy-scion`` directory.
-    For MacOS, the root certificate can be found in the ``/usr/local/scion/caddy-scion`` directory. Please, use the Keychain Access application to import the root certificate.
+  - Import the root certificate used into the browser trust store. 
+    If the user has followed the installation examples in the `examples <https://github.com/scionproto-contrib/caddy-scion/tree/main/_examples>`__ folder, the root certificate can be found in the ``/usr/share/scion/caddy-scion/pki/authorities/local/root.crt`` directory.
+    
+    For Linux and Windows, you can import the root certificate into the system trust store. The chromium-based browsers require the root certificate to be imported into the browser trust store as well.
+    
+    - Go to `chrome://certificate-manager/` -> "Installed by you" -> "Import" -> select the `root.crt` retrieved previously.
+    
+    For MacOS, use the Keychain Access application to import the root certificate.
   - Disable certificate verification in the browser or client, e.g.:
     - Run chrome with, ``chrome --ignore-certificate-errors``
     - Use the ``--proxy-insecure`` flag with curl, e.g.:
