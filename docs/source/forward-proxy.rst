@@ -226,14 +226,14 @@ Nonetheless, the local network administrator must:
 - Implement a proper resolution for forward-proxy.scion to the IP address of the host running the SCION HTTP Forward Proxy.
   
   - This can be done by adding an entry to the local DNS server or by adding an entry to the /etc/hosts file of all the hosts in the network via some orchestrator.
+  - Alternatively, the administrator can make use of WPAD (Web Proxy Auto-Discovery Protocol). 
+    This mechanism is used to automatically detect the proxy settings in your network. 
+    The `SCION Browser Extension <https://scion-browser-extension.readthedocs.io/en/latest/index.html>`_ supports WPAD on a generic URL generic WPAD URL ``http://wpad/wpad_scion.dat``.
+    Check the `Proxy Configuration <https://scion-browser-extension.readthedocs.io/en/latest/#proxy-configuration>`_ documentation for more information.
 
 - Disseminate the root certificate to all the hosts in the network.
   
   - This can be done by adding the root certificate to the trust store of all the hosts in the network or by using a configuration management tool to distribute the certificate.
-
-.. note::
-  We are working on a user-friendly solution that network operators can use as reference and implement in their networks to facilitate the deployment of the SCION HTTP Forward Proxy as an in-network service.
-  Nonetheless, any solution that achieves the previous requirements is valid.
 
 SCION address resolution
 ------------------------
