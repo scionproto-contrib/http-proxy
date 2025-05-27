@@ -125,10 +125,8 @@ Then, you can follow the steps below to install the plugin:
 - If you are running the **forward proxy as a local proxy**, please follow the localhost configuration `instructions <#running-the-scion-http-forward-proxy-locally>`_ to integrate it with your browser.
 
 
-Windows
--------
-
 Build for Windows
+-----------------
 
 .. note::
   Experimental option. The SCION HTTP forward proxy has not been tested on Windows yet.
@@ -221,6 +219,7 @@ If you do not want to grant those privileges, you can run the binary without the
 
 The primary option for connecting to the SCION HTTP Forward Proxy is over HTTPS.
 Most browsers or HTTPS clients will not trust the self-signed certificate used by the SCION HTTP Forward Proxy by default. To avoid certificate warnings, the user must either:
+
   - Import the root certificate use into the browser trust store. If the user has followed the installation examples in the `examples <https://github.com/scionproto-contrib/http-proxy/tree/main/_examples>`__ folder, the root certificate can be found in the ``/usr/share/scion/caddy-scion`` directory.
     For MacOS, the root certificate can be found in the ``/usr/local/scion/caddy-scion`` directory. Please, use the Keychain Access application to import the root certificate.
   - Disable certificate verification in the browser or client, e.g.:
@@ -233,21 +232,26 @@ Most browsers or HTTPS clients will not trust the self-signed certificate used b
 
 Alternatively, you can enable plain HTTP support for the SCION HTTP Forward Proxy by adding the following lines to the JSON configuration file:
 
-  .. code-block:: json
+.. code-block:: json
 
-    "apps": {
-        "http": {
-            "http_port": 9080,
-            "https_port": 9443,
-            "servers": {
-                "forward": {
-                    "logs": {},
-                    "metrics": {},
-                    "listen": [
-                        ":9080",
-                        ":9443"
-                    ],
-    ...
+  {
+  "apps": {
+      "http": {
+          "http_port": 9080,
+          "https_port": 9443,
+          "servers": {
+              "forward": {
+                  "logs": {},
+                  "metrics": {},
+                  "listen": [
+                      ":9080",
+                      ":9443"
+                  ]
+              }
+          }
+      }
+      ...
+  }
 
 Running the SCION HTTP Forward Proxy as in-network service
 ----------------------------------------------------------
