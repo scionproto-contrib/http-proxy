@@ -9,10 +9,11 @@ Prerequisites
 -------------
 - A ``SCION-enabled host`` in a ``SCION-enabled network`` (see `Access and Host Configuration <https://docs.scion.org/projects/scion-applications/en/latest/applications/access.html>`_).
 
-Installation
-------------
+Download for your target platform
+---------------------------------
 
-You can install the SCION HTTP Forward Proxy building it for the target platform or downloading the pre-built binary in `releases <https://github.com/scionproto-contrib/caddy-scion/releases>`_.
+You can download the SCION HTTP Forward Proxy pre-built binaries in `releases <https://github.com/scionproto-contrib/caddy-scion/releases>`_.
+Otherwise, you can build the plugin for your target platform as described below.
 
 Build for Linux
 ---------------
@@ -31,6 +32,9 @@ You can build the caddy server containing the SCION plugin from source as follow
   .. code-block:: bash
 
     go build -o ./build/scion-caddy ./cmd/scion-caddy
+
+Installation for Linux
+----------------------
 
 Then, you can follow the steps below to install the plugin:
 
@@ -82,6 +86,9 @@ You can build the caddy server containing the SCION plugin from source as follow
 
     GOOS=darwin GOARCH=amd64 go build -o ./build/scion-caddy ./cmd/scion-caddy
 
+Installation for MacOS
+----------------------
+
 Then, you can follow the steps below to install the plugin:
 
 - Ensure that you are running the scion-endhost stack as described in the `SCION documentation <https://docs.scion.org/projects/scion-applications/en/latest/applications/access.html>`_.
@@ -118,8 +125,10 @@ Then, you can follow the steps below to install the plugin:
 - If you are running the **forward proxy as a local proxy**, please follow the localhost configuration `instructions <#running-the-scion-http-forward-proxy-locally>`_ to integrate it with your browser.
 
 
+Windows
+-------
+
 Build for Windows
------------------
 
 .. note::
   Experimental option. The SCION HTTP forward proxy has not been tested on Windows yet.
@@ -138,6 +147,9 @@ You can build the caddy server containing the SCION plugin from source as follow
   .. code-block:: bash
 
     GOOS=windows GOARCH=amd64 go build -o ./build/scion-caddy ./cmd/scion-caddy
+
+Installation for Windows
+------------------------
 
 Then, you can follow the steps below to install the plugin:
 
