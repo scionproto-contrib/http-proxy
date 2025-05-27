@@ -42,9 +42,9 @@ Then, you can follow the steps below to install the plugin:
 
 - Ensure that you are running the scion-endhost stack as described in the `SCION documentation <https://docs.scion.org/projects/scion-applications/en/latest/applications/access.html>`_.
 
-.. code-block:: bash
+  .. code-block:: bash
 
-    chmod +x scion-caddy
+      chmod +x scion-caddy
 
 - If you intend to configure the proxy to run on well-known ports, add network capabilities to the binary:
 
@@ -63,9 +63,9 @@ Then, you can follow the steps below to install the plugin:
 
 - Apply the necessary permissions to the binary:
 
-- Optionally you can create a systemd service and enable it. You can use the example service file ``scion-caddy.service`` in the `examples <https://github.com/scionproto-contrib/http-proxy/tree/main/_examples>`__.
+- Optionally you can create a systemd service and enable it. You can use the example service file ``scion-caddy.service`` in the `examples <https://github.com/scionproto-contrib/caddy-scion/tree/main/_examples>`__.
   
-- You can use the ``forward.json`` file in `examples <https://github.com/scionproto-contrib/http-proxy/blob/main/_examples/scion-caddy-forward-proxy.json>`__ folder as reference configuration file.
+- You can use the ``forward.json`` file in `examples <https://github.com/scionproto-contrib/caddy-scion/blob/main/_examples/forward.json>`__ folder as reference configuration file.
   The configuration is passed using the ``-config`` flag when running the binary. If you created a service, move it to ``/etc/scion/`` or the path that you have configured in the systemd service file.
   
 - If you are running the **forward proxy as a local proxy**, please follow the localhost configuration `instructions <#running-the-scion-http-forward-proxy-locally>`_ to integrate it with your browser.
@@ -96,7 +96,7 @@ Then, you can follow the steps below to install the plugin:
     sudo mkdir -p /usr/local/scion/caddy-scion
     sudo chown -R $USER /usr/local/scion
 
-- You can use the ``forward.json`` file in `examples <https://github.com/scionproto-contrib/http-proxy/blob/main/_examples/scion-caddy-forward-proxy.json>`__ folder as reference configuration file.
+- You can use the ``forward.json`` file in `examples <https://github.com/scionproto-contrib/caddy-scion/blob/main/_examples/forward.json>`__ folder as reference configuration file.
   The configuration is passed using the ``-config`` flag when running the binary.
   Next, modify the JSON configuration file to point to the correct paths for the plugin data directory. Mainly, **replace** ``/usr/share/scion/caddy-scion`` with ``/usr/local/scion/caddy-scion``.
 
@@ -124,7 +124,7 @@ Then, you can follow the steps below to install the plugin:
 
     mkdir -p AppData\\scion\\caddy-scion
 
-- You can use the ``forward.json`` file in `examples <https://github.com/scionproto-contrib/http-proxy/blob/main/_examples/scion-caddy-forward-proxy.json>`__ folder as reference configuration file.
+- You can use the ``forward.json`` file in `examples <https://github.com/scionproto-contrib/caddy-scion/blob/main/_examples/forward.json>`__ folder as reference configuration file.
   The configuration is passed using the ``-config`` flag when running the binary.
   Next, modify the JSON configuration file to point to the correct paths for the plugin data directory. Mainly, **replace** ``/usr/share/scion/caddy-scion`` with ``C:\\Users\\<username>\\AppData\\scion\\caddy-scion``.
 
@@ -146,7 +146,7 @@ Configuration
 -------------
 The SCION HTTP Forward Proxy is configured via the Caddy JSON config. The location of the JSON config is specified in the systemd service file or when running the binary via the ``-conf`` flag.
 
-You can find examples of JSON configurations in the `examples <https://github.com/scionproto-contrib/http-proxy/tree/main/_examples>`__ folder of the repository. For more information on how to configure Caddy, see the `Caddy documentation <https://caddyserver.com/docs/json>`_.
+You can find examples of JSON configurations in the `examples <https://github.com/scionproto-contrib/caddy-scion/tree/main/_examples>`__ folder of the repository. For more information on how to configure Caddy, see the `Caddy documentation <https://caddyserver.com/docs/json>`_.
 
 Session Key for Cookie Storage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -185,7 +185,7 @@ If you do not want to grant those privileges, you can run the binary without the
 The primary option for connecting to the SCION HTTP Forward Proxy is over HTTPS.
 Most browsers or HTTPS clients will not trust the self-signed certificate used by the SCION HTTP Forward Proxy by default. To avoid certificate warnings, the user must either:
 
-  - Import the root certificate use into the browser trust store. If the user has followed the installation examples in the `examples <https://github.com/scionproto-contrib/http-proxy/tree/main/_examples>`__ folder, the root certificate can be found in the ``/usr/share/scion/caddy-scion`` directory.
+  - Import the root certificate use into the browser trust store. If the user has followed the installation examples in the `examples <https://github.com/scionproto-contrib/caddy-scion/tree/main/_examples>`__ folder, the root certificate can be found in the ``/usr/share/scion/caddy-scion`` directory.
     For MacOS, the root certificate can be found in the ``/usr/local/scion/caddy-scion`` directory. Please, use the Keychain Access application to import the root certificate.
   - Disable certificate verification in the browser or client, e.g.:
     - Run chrome with, ``chrome --ignore-certificate-errors``
@@ -195,7 +195,7 @@ Most browsers or HTTPS clients will not trust the self-signed certificate used b
 
       curl --proxy-insecure -x https://forward-proxy.scion:9443 https://www.example.org
 
-Alternatively, you can enable plain HTTP support for the SCION HTTP Forward Proxy by adding the following lines to the JSON configuration file:
+Alternatively, you can enable plain HTTP support for the SCION HTTP Forward Proxy by adding the `http port` to the configuration file:
 
 .. code-block:: json
 
@@ -266,7 +266,7 @@ SCION production network
 
 Other domains are also accessible:
     - https://www.ovgu.de
-    - https://dfw.source.kernel.org
+    - https://web.git.kernel.org
     - https://ucdb.br
 
 If you are a regular user using an in-network proxy, you do not have to worry about the information below.
@@ -276,7 +276,7 @@ If you are running your own local proxy or you are the administrator for the in-
   .. code-block:: bash
 
     71-2:0:4a,[141.44.25.151] ovgu.de www.ovgu.de
-    71-2:0:48,[127.0.0.1]	dfw.source.kernel.org
+    71-2:0:48,[127.0.0.1]	web.git.kernel.org
     71-2:0:5c,[127.0.0.1]	ucdb.br
 
 SCIONLab network
