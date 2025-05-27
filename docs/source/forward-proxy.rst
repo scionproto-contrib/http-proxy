@@ -170,13 +170,8 @@ For more information, see the `Caddy TLS configuration <https://caddyserver.com/
 Running the SCION HTTP Forward Proxy locally
 --------------------------------------------
 End users can run the SCION HTTP Forward Proxy locally by following the installation steps above.
-For smooth running experience, grant DAC capabilities to the binary:
 
-  .. code-block:: bash
-
-    sudo setcap cap_dac_override=+ep scion-caddy
-
-If you do not want to grant those privileges, you can run the binary without them but you will have to manually add the following line to your ``/etc/hosts`` before running the SCION HTTP Forward Proxy:
+Add the following line on ``/etc/hosts`` before running the SCION HTTP Forward Proxy:
 
   .. code-block:: bash
 
