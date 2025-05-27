@@ -22,33 +22,39 @@ Prerequisites
 -------------
 - A ``SCION-enabled host`` in a ``SCION-enabled network`` (see `Access and Host Configuration <https://docs.scion.org/projects/scion-applications/en/latest/applications/access.html>`_).
 
-Installation
-------------
+Download for your target platform
+---------------------------------
 
-You can install the SCION HTTP Reverse Proxy by building it for the target platform or downloading the pre-built binary in `releases <https://github.com/scionproto-contrib/caddy-scion/releases>`_.
+You can download the SCION HTTP Reverse Proxy pre-built binaries in `releases <https://github.com/scionproto-contrib/caddy-scion/releases>`_.
+Otherwise, you can build the plugin for your target platform as described below.
 
+Build for your target platform
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Build for Linux
-~~~~~~~~~~~~~~~
-
-You can build the Caddy server containing the SCION plugin from source as follows:
+You can build the caddy server containing the SCION plugin from source as follows:
 
 - Download the source code from the `Caddy SCION repository <https://github.com/scionproto-contrib/caddy-scion>`_.
-- Depending on what protocol the reverse proxy should support, you can build the binary with the following commands:
+- Build the plugin by running the following command in the root directory of the repository.
+  Depending on what protocol the reverse proxy should support, you can build the binary with the following commands:
   
   - Native HTTP3 support:
 
   .. code-block:: bash
 
-    go build -o ./build/scion-caddy-native ./cmd/scion-caddy-native
+    CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ./build/scion-caddy-native ./cmd/scion-caddy-native
   
 
   - HTTP1.1, HTTP2.0 and native HTTP3 over SCION:
 
   .. code-block:: bash
 
-    go build -o ./build/scion-caddy-reverse ./cmd/scion-caddy-reverse
+    CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build go build -o ./build/scion-caddy-reverse ./cmd/scion-caddy-reverse
+
   
+ - Adapt the ``GOOS`` and ``GOARCH`` variables to your target platform, e.g., ``GOOS=windows GOARCH=amd64`` for Windows.
+
+Installation for Linux
+~~~~~~~~~~~~~~~~~~~~~~
 
 Then, you can follow the steps below to install the plugin:
 
@@ -64,30 +70,8 @@ Then, you can follow the steps below to install the plugin:
 - The reverse proxy can work in two modes, `layer-5 <#layer-5-reverse-proxy>`__ or `layer-4 (passthrough) <#layer-4-reverse-proxy-passthrough>`__. 
   Check the corresponding sections to configure the reverse proxy accordingly.
   
-
-Build for Windows
-~~~~~~~~~~~~~~~~~
-
-.. note::
-  Experimental option. The SCION HTTP reverse proxy has not been tested on Windows yet.
-
-You can build the Caddy server containing the SCION plugin from source as follows:
-
-- Download the source code from the `Caddy SCION repository <https://github.com/scionproto-contrib/caddy-scion>`_.
-- Depending on what protocol the reverse proxy should support, you can build the binary with the following commands:
-
-  - Native HTTP3 support:
-
-  .. code-block:: bash
-
-    GOOS=windows GOARCH=amd64 go build -o ./build/scion-caddy-native ./cmd/scion-caddy-native
-  
-
-  - HTTP1.1, HTTP2.0 and native HTTP3 over SCION:
-
-  .. code-block:: bash
-
-    GOOS=windows GOARCH=amd64 go build -o ./build/scion-caddy-reverse ./cmd/scion-caddy-reverse
+Installation for Windows
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 Then, follow the steps below:
 
