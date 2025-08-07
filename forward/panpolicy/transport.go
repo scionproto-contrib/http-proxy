@@ -26,6 +26,7 @@ import (
 	"github.com/netsec-ethz/scion-apps/pkg/pan"
 	"github.com/netsec-ethz/scion-apps/pkg/quicutil"
 	"github.com/netsec-ethz/scion-apps/pkg/shttp"
+	"github.com/quic-go/quic-go"
 	"go.uber.org/zap"
 )
 
@@ -65,7 +66,11 @@ type pathAwareConn interface {
 
 func NewSCIONDialer(logger *zap.Logger, dialTimeout time.Duration, shared bool) *SCIONDialer {
 	return &SCIONDialer{
-		dialSCION:   &internalSCIONDialer{dialer: &shttp.Dialer{}},
+		dialSCION: &internalSCIONDialer{dialer: &shttp.Dialer{
+			QuicConfig: &quic.Config{
+				Versions: []quic.Version{0x5c10000f},
+			},
+		}},
 		dialTimeout: dialTimeout,
 		connectionTracker: &connectionTracker{
 			conns: make(map[string]map[net.Conn]struct{}),
