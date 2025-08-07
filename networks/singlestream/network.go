@@ -121,7 +121,13 @@ func (l *listenerSCION) listen(
 		NextProtos:   []string{quicutil.SingleStreamProto},
 		Certificates: quicutil.MustGenerateSelfSignedCert(),
 	}
-	quicListener, err := listenQUIC(ctx, network, laddr, tlsCfg, nil)
+	quicConfig := &quic.Config{
+		Versions: []quic.Version{
+			quic.Version1,
+			quic.Version2,
+			0x5c10000f},
+	}
+	quicListener, err := listenQUIC(ctx, network, laddr, tlsCfg, quicConfig)
 	if err != nil {
 		network.Logger().Error("failed to listen on QUIC", zap.Error(err))
 		return nil, err

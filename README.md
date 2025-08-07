@@ -19,3 +19,11 @@ If you are looking to install and configure the SCION-HTTP proxy as a user or ne
 ## Developer setup
 
 If you are looking to set up a developer environment, you can directly refer to the [Development Setup](https://scion-http-proxy.readthedocs.io/en/latest/dev_setup.html) section.
+
+## Dependencies
+
+This project requires a forked version of quic-go that handle PMTUD when using the SCION network. If you're using this library in your project, add the following replace directive to your go.mod:
+
+```go
+replace github.com/quic-go/quic-go => github.com/Anapaya/quic-go v0.50.1-0.20250318085304-31c2831f6fe0
+```
