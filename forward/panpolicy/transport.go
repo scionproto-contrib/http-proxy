@@ -151,11 +151,6 @@ type ConnInfo struct {
 }
 
 func (d *SCIONDialer) GetMetrics(filteredAddrs []string) (*DialerMetrics, error) {
-	if d.shared {
-		// wont share any paths for the shared dialer
-		// TODO maybe we want?
-		return &DialerMetrics{}, nil
-	}
 
 	panConnsPerAddr := d.connectionTracker.GetAllConnections()
 	if len(panConnsPerAddr) == 0 {
