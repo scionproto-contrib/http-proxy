@@ -1,14 +1,12 @@
 module github.com/scionproto-contrib/http-proxy
 
-go 1.23
-
-toolchain go1.23.11
+go 1.23.0
 
 require (
 	github.com/gorilla/securecookie v1.1.2
 	github.com/gorilla/sessions v1.2.2
-	github.com/netsec-ethz/scion-apps v0.5.1-0.20250203095105-f70181af6440
-	github.com/quic-go/quic-go v0.50.1
+	github.com/netsec-ethz/scion-apps v0.6.1-0.20251205083251-f2efcdffa5cb
+	github.com/quic-go/quic-go v0.54.1
 	github.com/scionproto/scion v0.12.1-0.20241223103250-0b42cbc42486
 	github.com/stretchr/testify v1.9.0
 	go.uber.org/zap v1.27.0
@@ -24,10 +22,8 @@ require (
 	github.com/dchest/cmac v1.0.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/go-stack/stack v1.8.0 // indirect
-	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/gopacket v1.1.19 // indirect
-	github.com/google/pprof v0.0.0-20240509144519-723abb6459b7 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0 // indirect
@@ -39,7 +35,6 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.22 // indirect
 	github.com/ncruces/go-strftime v0.1.9 // indirect
 	github.com/netsec-ethz/rains v0.5.1-0.20240619143424-8e9ef27f2403 // indirect
-	github.com/onsi/ginkgo/v2 v2.17.3 // indirect
 	github.com/opentracing/opentracing-go v1.2.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.2 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
@@ -73,4 +68,4 @@ require (
 	modernc.org/token v1.1.0 // indirect
 )
 
-replace github.com/quic-go/quic-go => github.com/Anapaya/quic-go v0.50.1-0.20250318085304-31c2831f6fe0
+replace github.com/quic-go/quic-go => github.com/Anapaya/quic-go v0.54.1-0.20250826114440-2a6d6dc3b3fd
