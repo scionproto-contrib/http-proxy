@@ -99,43 +99,30 @@ func (d *SCIONDialer) DialContext(ctx context.Context, network string, addr stri
 	ctxTimeout, cancel := context.WithTimeout(ctx, d.dialTimeout)
 	defer cancel()
 
-	connc, errc := make(chan net.Conn, 1), make(chan error, 1)
-	go func() {
-		conn, err := d.dialSCION.DialContext(ctxTimeout, network, addr)
-		if err != nil {
-			errc <- err
-			return
-		}
-		connc <- conn
-	}()
-
-	select {
-	case <-ctxTimeout.Done():
-		return nil, ErrDialTimeout
-	case err := <-errc:
+	conn, err := d.dialSCION.DialContext(ctxTimeout, network, addr)
+	if err != nil {
 		return nil, err
-	case conn := <-connc:
-		if panConn, ok := conn.(pathAwareConn); ok {
-			conn = newTrackedConnection(panConn, addr, d.connectionTracker)
+	}
 
-			var ia pan.IA
-			if addr, ok := panConn.LocalAddr().(pan.UDPAddr); ok {
-				ia = addr.IA
-			}
+	if panConn, ok := conn.(pathAwareConn); ok {
+		conn = newTrackedConnection(panConn, addr, d.connectionTracker)
 
-			pi := &pathInfo{panConn.GetPath(), ia}
-			d.lastUsedPathForAddr[addr] = pi
-			log.Debug("Using path.",
-				zap.String("addr", addr),
-				zap.String("path", strings.Join(hopsToPathHops(pi), ",")))
-
+		var ia pan.IA
+		if addr, ok := panConn.LocalAddr().(pan.UDPAddr); ok {
+			ia = addr.IA
 		}
 
-		t := time.Now()
-		d.lastDial = &t
-
-		return conn, nil
+		pi := &pathInfo{panConn.GetPath(), ia}
+		d.lastUsedPathForAddr[addr] = pi
+		log.Debug("Using path.",
+			zap.String("addr", addr),
+			zap.String("path", strings.Join(hopsToPathHops(pi), ",")))
 	}
+
+	t := time.Now()
+	d.lastDial = &t
+
+	return conn, nil
 }
 
 var ErrNoConnections = fmt.Errorf("dialer has no open connections")
