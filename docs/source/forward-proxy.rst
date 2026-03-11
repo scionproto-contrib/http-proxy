@@ -266,7 +266,7 @@ domain name for which a certificate can be obtained.
 1. Create an A/AAAA record for ``forward-proxy.scion.<search-domain>`` pointing to the proxy host IP.
 2. Register the domain with the ACME-DNS server and create a CNAME record for
    ``_acme-challenge.forward-proxy.scion.<search-domain>`` pointing to the ACME-DNS subdomain.
-3. Configure the DNS search domain on all client hosts so that ``forward-proxy.scion`` resolves to
+3. Configure DHCP to advertised the DNS search domain  or manually configure the DNS search domain on clients so that all client hosts resolve ``forward-proxy.scion`` to
    ``forward-proxy.scion.<search-domain>``.
 
 **Configuration example:**
