@@ -234,8 +234,129 @@ Nonetheless, the local network administrator must:
     Check the `Proxy Configuration <https://scion-browser-extension.readthedocs.io/en/latest/#proxy-configuration>`_ documentation for more information.
 
 - Disseminate the root certificate to all the hosts in the network.
-  
+
   - This can be done by adding the root certificate to the trust store of all the hosts in the network or by using a configuration management tool to distribute the certificate.
+  - Alternatively, see `Using WebPKI with ACME DNS <#using-webpki-with-acme-dns>`_ below to use publicly trusted certificates instead.
+
+Using WebPKI with ACME DNS
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Instead of distributing Caddy's internal root certificate to all hosts, the administrator can obtain
+a publicly trusted (WebPKI) certificate for the forward proxy. This eliminates the need for certificate
+distribution entirely, since all clients already trust public CAs.
+
+This requires that the proxy hostname is a valid FQDN that a public CA can issue a certificate for.
+By leveraging the network's DNS search domain, the proxy can be reached at
+``forward-proxy.scion.<search-domain>`` (e.g., ``forward-proxy.scion.example.com``), which is a valid
+domain name for which a certificate can be obtained.
+
+**Prerequisites:**
+
+- The administrator controls the DNS zone for ``<search-domain>`` and can create DNS records for
+  ``forward-proxy.scion.<search-domain>``.
+- The ``scion-caddy-forward-acmedns`` binary is used instead of ``scion-caddy-forward``.
+  This variant includes the ACME-DNS module and can be built with:
+
+  .. code-block:: bash
+
+    make scion-caddy-forward-acmedns
+
+**DNS setup:**
+
+1. Create an A/AAAA record for ``forward-proxy.scion.<search-domain>`` pointing to the proxy host IP.
+2. Register the domain with the ACME-DNS server and create a CNAME record for
+   ``_acme-challenge.forward-proxy.scion.<search-domain>`` pointing to the ACME-DNS subdomain.
+3. Configure DHCP to advertised the DNS search domain  or manually configure the DNS search domain on clients so that all client hosts resolve ``forward-proxy.scion`` to
+   ``forward-proxy.scion.<search-domain>``.
+
+**Configuration example:**
+
+The following configuration uses the ACME protocol with DNS-01 challenges via ACME-DNS to obtain a
+publicly trusted certificate for ``forward-proxy.scion.<search-domain>``:
+
+.. code-block:: json
+
+  {
+      "apps": {
+          "http": {
+              "http_port": 9080,
+              "https_port": 9443,
+              "servers": {
+                  "forward": {
+                      "logs": {},
+                      "metrics": {},
+                      "listen": [
+                          ":9080",
+                          ":9443"
+                      ],
+                      "automatic_https": {
+                          "disable_redirects": true
+                      },
+                      "routes": [
+                          {
+                              "handle": [
+                                  {
+                                      "handler": "forward_proxy",
+                                      "hosts": [
+                                          "forward-proxy.scion.<search-domain>"
+                                      ]
+                                  }
+                              ]
+                          }
+                      ],
+                      "tls_connection_policies": [
+                          {}
+                      ]
+                  }
+              }
+          },
+          "tls": {
+              "certificates": {
+                  "automate": [
+                      "forward-proxy.scion.<search-domain>"
+                  ]
+              },
+              "automation": {
+                  "policies": [
+                      {
+                          "subjects": [
+                              "forward-proxy.scion.<search-domain>"
+                          ],
+                          "issuers": [
+                              {
+                                  "module": "acme",
+                                  "challenges": {
+                                      "dns": {
+                                          "provider": {
+                                              "name": "acmedns",
+                                              "server_url": "https://acme-dns.example.com",
+                                              "username": "<acme-dns-username>",
+                                              "password": "<acme-dns-password>",
+                                              "subdomain": "<acme-dns-subdomain>"
+                                          }
+                                      }
+                                  }
+                              }
+                          ]
+                      }
+                  ]
+              }
+          }
+      },
+      "logging": {
+          "logs": {
+              "default": {
+                  "level": "INFO"
+              }
+          }
+      }
+  }
+
+.. note::
+
+  The ACME-DNS credentials (``server_url``, ``username``, ``password``, ``subdomain``) are obtained
+  when registering the domain with the ACME-DNS server. Refer to the
+  `caddy-dns/acmedns documentation <https://github.com/caddy-dns/acmedns>`_ for setup instructions.
 
 SCION address resolution
 ------------------------
