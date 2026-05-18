@@ -389,7 +389,6 @@ SCION production network
 
 Other domains are also accessible:
     - https://www.ovgu.de
-    - https://web.git.kernel.org
     - https://ucdb.br
 
 If you are a regular user using an in-network proxy, you do not have to worry about the information below.
@@ -399,7 +398,6 @@ If you are running your own local proxy or you are the administrator for the in-
   .. code-block:: bash
 
     71-2:0:4a,[141.44.25.151] ovgu.de www.ovgu.de
-    71-2:0:48,[127.0.0.1]	web.git.kernel.org
     71-2:0:5c,[127.0.0.1]	ucdb.br
 
 SCIONLab network
